@@ -1,0 +1,12 @@
+# 报销助手智能体系统 — 后端依赖（Python 3.11+）
+fastapi>=0.110
+uvicorn[standard]>=0.29
+sqlalchemy[asyncio]>=2.0
+aiosqlite>=0.20          # 开发期 SQLite 异步驱动；生产换 asyncpg
+pydantic>=2.6
+PyJWT>=2.8
+openai>=1.30             # 所有供应商统一走 OpenAI 兼容协议
+numpy>=1.26
+rank_bm25>=0.2.2         # BM25 关键词检索
+python-multipart>=0.0.9  # 文件上传
+httpx>=0.27              # 测试客户端

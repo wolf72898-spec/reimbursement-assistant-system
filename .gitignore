@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 环境与密钥
+.env
+*.key
+
+# 本地数据
+dev.db
+*.sqlite3
+storage/policies/*
+!storage/policies/.gitkeep
+
+# IDE / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
