@@ -62,9 +62,9 @@ def tokenize_zh(text: str) -> list:
 
 
 async def _load_chunks(db: AsyncSession):
-    """装载所有 active 文档的切片（内容 + 向量）"""
+    """装载所有 active 文档的切片（内容 + 所属文档名 + 向量）"""
     rows = await db.execute(
-        select(PolicyChunk, PolicyDocument.status)
+        select(PolicyChunk, PolicyDocument.title, PolicyDocument.version)
         .join(PolicyDocument, PolicyChunk.document_id == PolicyDocument.id)
         .where(PolicyDocument.status == "active")
     )
@@ -118,4 +118,8 @@ async def hybrid_search(
             vec_ranked = []  # 降级：只用 BM25
 
     best = _rrf_fuse([list(bm25_ranked), list(vec_ranked)], top_k)
-    return [contents[i] for i in best]
+    # 返回带来源的结构：内容 + 所属文档名（供前端展示引用）
+    return [
+        {"content": rows[i][0].content, "doc_title": f"{rows[i][1]}_v{rows[i][2]}"}
+        for i in best
+    ]

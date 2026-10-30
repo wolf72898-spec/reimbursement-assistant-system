@@ -48,6 +48,12 @@ class MessageIn(BaseModel):
     content: str = Field(min_length=1, max_length=4000)
 
 
+class StreamIn(BaseModel):
+    """SSE 流式对话请求"""
+    session_id: int
+    question: str = Field(min_length=1, max_length=4000)
+
+
 class MessageOut(BaseModel):
     id: int
     role: str

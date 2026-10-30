@@ -1,24 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-对话路由：会话管理与消息问答。
-一期返回 JSON 非流式；SSE 流式输出为二期改造点（接口路径不变）。
+对话路由：会话管理、非流式问答（兼容保留）与 SSE 流式问答（主入口）。
 """
+import asyncio
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.llm.client import llm_available
 from app.agent.router import classify_intent
-from app.agent.tools import answer_policy, extract_expense
+from app.agent.tools import answer_policy, answer_policy_stream, build_history, extract_expense
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
 from app.models.chat import ChatMessage, ChatSession
 from app.models.expense import ExpenseDraft
 from app.models.user import User
 from app.rag.retriever import hybrid_search
-from app.schemas import MessageIn, MessageOut, SessionOut
+from app.schemas import MessageIn, MessageOut, SessionOut, StreamIn
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
+
+
+# ============================================================
+# 会话管理
+# ============================================================
 
 
 @router.post("/sessions", response_model=SessionOut, status_code=201)
@@ -48,86 +56,6 @@ async def list_sessions(
     return rows.scalars().all()
 
 
-@router.post(
-    "/sessions/{session_id}/messages",
-    response_model=MessageOut,
-    responses={503: {"description": "LLM 未配置"}},
-)
-async def send_message(
-    session_id: int,
-    body: MessageIn,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    核心问答接口。链路：
-    存用户消息 → 意图路由 →（问答）RAG检索+LLM /（报销）字段抽取+存草稿
-    → 存助手消息 → 返回。
-    """
-    if not llm_available():
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            "LLM 未配置（设置 RAG_API_KEY 环境变量后重启）",
-        )
-    session = await db.get(ChatSession, session_id)
-    if session is None or session.user_id != user.id:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
-
-    # 1. 落库用户消息
-    user_msg = ChatMessage(session_id=session_id, role="user", content=body.content)
-    db.add(user_msg)
-    await db.flush()
-
-    intent = classify_intent(body.content)
-    meta: dict = {"intent": intent}
-    if intent == "qa":
-        # ---- 路 1：制度问答（RAG）----
-        contexts = await hybrid_search(db, body.content, settings.TOP_K)
-        if contexts is None:
-            reply = "知识库还没有上传任何制度文档，请联系管理员先上传。"
-        else:
-            meta["contexts"] = contexts
-            reply = await answer_policy(body.content, contexts)
-    else:
-        # ---- 路 2：报销发起（字段抽取 → 存草稿）----
-        history = await db.execute(
-            select(ChatMessage)
-            .where(ChatMessage.session_id == session_id)
-            .order_by(ChatMessage.id.desc())
-            .limit(6)
-        )
-        dialog = [{"role": m.role, "content": m.content} for m in reversed(history.scalars().all())]
-        extracted = await extract_expense(dialog)
-        meta["extracted"] = extracted
-        if "error" not in extracted:
-            draft = ExpenseDraft(
-                user_id=user.id,
-                session_id=session_id,
-                expense_type=extracted.get("expense_type", "未分类"),
-                total_amount=float(extracted.get("total_amount") or 0),
-                fields=extracted.get("fields", {}),
-                missing_fields=extracted.get("missing_fields", []),
-            )
-            db.add(draft)
-            missing = extracted.get("missing_fields") or []
-            reply = (
-                f"已为你生成报销单草稿（{extracted.get('expense_type', '未分类')}，"
-                f"金额 {extracted.get('total_amount', 0)} 元）。"
-                + (f"还需要补充：{'、'.join(missing)}。" if missing else "信息完整。")
-            )
-        else:
-            reply = "抱歉，信息抽取出了点问题，请换个说法再试一次。"
-
-    # 2. 落库助手消息并返回
-    assistant_msg = ChatMessage(
-        session_id=session_id, role="assistant", content=reply, meta=meta
-    )
-    db.add(assistant_msg)
-    await db.commit()
-    await db.refresh(assistant_msg)
-    return assistant_msg
-
-
 @router.get("/sessions/{session_id}/messages", response_model=list[MessageOut])
 async def list_messages(
     session_id: int,
@@ -144,3 +72,212 @@ async def list_messages(
         .order_by(ChatMessage.id)
     )
     return rows.scalars().all()
+
+
+# ============================================================
+# 公共逻辑：会话校验 + 历史装载（流式/非流式共用）
+# ============================================================
+
+
+async def _load_context(db: AsyncSession, user: User, session_id: int, question: str):
+    """校验会话归属、保存用户消息、装载最近 6 轮历史"""
+    if not llm_available():
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "LLM 未配置，请联系管理员设置 RAG_API_KEY",
+        )
+    session = await db.get(ChatSession, session_id)
+    if session is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
+    if session.user_id != user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "无权访问该会话")
+
+    # 用户消息先落库（中途断连也不丢）
+    db.add(ChatMessage(session_id=session_id, role="user", content=question))
+    await db.commit()
+
+    # 最近 6 轮历史（12 条消息）
+    rows = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.session_id == session_id)
+        .order_by(ChatMessage.id.desc())
+        .limit(12)
+    )
+    history = [
+        {"role": m.role, "content": m.content}
+        for m in reversed(rows.scalars().all())
+    ]
+    return history
+
+
+# ============================================================
+# 非流式接口（兼容保留）
+# ============================================================
+
+
+@router.post(
+    "/sessions/{session_id}/messages",
+    response_model=MessageOut,
+    responses={503: {"description": "LLM 未配置"}},
+)
+async def send_message(
+    session_id: int,
+    body: MessageIn,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """非流式问答（旧版兼容）。主入口请用 /api/chat/stream。"""
+    history = await _load_context(db, user, session_id, body.content)
+
+    intent = classify_intent(body.content)
+    meta: dict = {"intent": intent}
+    if intent == "qa":
+        contexts = await hybrid_search(db, body.content, settings.TOP_K)
+        if contexts is None:
+            reply = "知识库还没有上传任何制度文档，请联系管理员先上传。"
+        else:
+            meta["contexts"] = contexts
+            reply = await answer_policy(body.content, contexts, history)
+    else:
+        dialog = history + [{"role": "user", "content": body.content}]
+        extracted = await asyncio.to_thread(extract_expense, dialog)
+        meta["extracted"] = extracted
+        reply, _ = _handle_expense_result(db, user, session_id, extracted)
+        await db.commit()
+
+    assistant_msg = ChatMessage(
+        session_id=session_id, role="assistant", content=reply, meta=meta
+    )
+    db.add(assistant_msg)
+    await db.commit()
+    await db.refresh(assistant_msg)
+    return assistant_msg
+
+
+def _handle_expense_result(db, user, session_id: int, extracted: dict):
+    """把抽取结果落库为草稿，返回 (回复文案, 是否建草稿)"""
+    if "error" in extracted:
+        return "抱歉，信息抽取出了点问题，请换个说法再试一次。", False
+    draft = ExpenseDraft(
+        user_id=user.id,
+        session_id=session_id,
+        expense_type=extracted.get("expense_type", "未分类"),
+        total_amount=float(extracted.get("total_amount") or 0),
+        fields=extracted.get("fields", {}),
+        missing_fields=extracted.get("missing_fields", []),
+    )
+    db.add(draft)
+    missing = extracted.get("missing_fields") or []
+    reply = (
+        f"已为你生成报销单草稿（{extracted.get('expense_type', '未分类')}，"
+        f"金额 {extracted.get('total_amount', 0)} 元）。"
+        + (f"还需要补充：{'、'.join(missing)}。" if missing else "信息完整。")
+    )
+    return reply, True
+
+
+# ============================================================
+# SSE 流式接口（主入口）
+# ============================================================
+
+
+def _sse(event: str, data: dict) -> str:
+    """格式化一条 SSE 消息"""
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+@router.post("/stream", responses={503: {"description": "LLM 未配置"}})
+async def stream_message(
+    body: StreamIn,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    SSE 流式问答主入口。
+    事件序列：status → sources → delta* → done（问答）
+             status → expense → delta* → done（报销）
+    HTTP 级错误（401/403/404/422/503）在流开始前直接返回 JSON。
+    """
+    history = await _load_context(db, user, body.session_id, body.question)
+
+    async def event_gen():
+        try:
+            intent = classify_intent(body.question)
+            yield _sse("status", {"message": "正在检索制度…"})
+
+            if intent == "qa":
+                # ---- 路 1：制度问答（RAG + 流式生成）----
+                contexts = await hybrid_search(db, body.question, settings.TOP_K)
+                if contexts is None:
+                    text = "知识库还没有上传任何制度文档，请联系管理员先上传。"
+                    yield _sse("delta", {"content": text})
+                else:
+                    # 推送引用来源（取最高分的 2 个，避免气泡过长）
+                    yield _sse("sources", {"sources": contexts[:2]})
+                    yield _sse("status", {"message": "正在生成回答…"})
+                    full = []
+                    async for piece in answer_policy_stream(
+                        body.question, contexts, history
+                    ):
+                        full.append(piece)
+                        yield _sse("delta", {"content": piece})
+                    text = "".join(full)
+
+                # 回答完整落库，meta 存引用来源
+                db.add(ChatMessage(
+                    session_id=body.session_id, role="assistant",
+                    content=text, meta={"intent": "qa", "contexts": contexts},
+                ))
+                await db.commit()
+                yield _sse("done", {"message": "回答完成"})
+
+            else:
+                # ---- 路 2：报销发起（字段抽取，非流式一次返回）----
+                yield _sse("status", {"message": "正在解析报销信息…"})
+                dialog = history + [{"role": "user", "content": body.question}]
+                extracted = await asyncio.to_thread(extract_expense, dialog)
+
+                if "error" in extracted:
+                    text = "抱歉，信息抽取出了点问题，请换个说法再试一次。"
+                    yield _sse("delta", {"content": text})
+                else:
+                    draft = ExpenseDraft(
+                        user_id=user.id, session_id=body.session_id,
+                        expense_type=extracted.get("expense_type", "未分类"),
+                        total_amount=float(extracted.get("total_amount") or 0),
+                        fields=extracted.get("fields", {}),
+                        missing_fields=extracted.get("missing_fields", []),
+                    )
+                    db.add(draft)
+                    await db.commit()
+                    await db.refresh(draft)
+                    # 推送报销单卡片事件，前端渲染成卡片
+                    yield _sse("expense", {
+                        "draft_id": draft.id,
+                        "expense_type": draft.expense_type,
+                        "total_amount": draft.total_amount,
+                        "fields": draft.fields,
+                        "missing_fields": draft.missing_fields or [],
+                    })
+                    missing = extracted.get("missing_fields") or []
+                    text = (
+                        f"已为你生成报销单草稿。"
+                        + (f"还需要补充：{'、'.join(missing)}。" if missing else "信息完整，可在「我的报销单」中提交。")
+                    )
+                    yield _sse("delta", {"content": text})
+
+                db.add(ChatMessage(
+                    session_id=body.session_id, role="assistant",
+                    content=text, meta={"intent": "expense", "extracted": extracted},
+                ))
+                await db.commit()
+                yield _sse("done", {"message": "处理完成"})
+
+        except Exception as e:  # 流内错误以 error 事件推送（响应头已发出）
+            yield _sse("error", {"code": 500, "message": f"服务异常：{e}"})
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

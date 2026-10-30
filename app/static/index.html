@@ -65,6 +65,15 @@
   .stat { flex: 1; background: #fff; border-radius: 10px; padding: 18px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
   .stat .num { font-size: 26px; font-weight: bold; color: #4a7cf7; }
   .stat .label { font-size: 13px; color: #888; margin-top: 4px; }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: #4a7cf7; margin-left: 2px; animation: blink 0.8s infinite; vertical-align: -2px; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .status { color: #999; }
+  .sources { margin-top: 8px; border-top: 1px dashed #e0e6ef; padding-top: 6px; }
+  .sources-head { font-size: 12px; color: #4a7cf7; cursor: pointer; user-select: none; }
+  .sources-list { margin-top: 6px; }
+  .source-item { font-size: 12px; color: #666; background: #f7f9fc; border-radius: 6px; padding: 6px 8px; margin-bottom: 5px; line-height: 1.6; cursor: pointer; }
+  .source-item b { color: #333; }
+  .expense-card { margin-top: 8px; background: #f0f7ff; border: 1px solid #c9d9fb; border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.8; }
   #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
 </style>
 </head>
@@ -203,17 +212,121 @@ async function newChat() {
   SESSION_ID = s.id; chatBody.innerHTML = "";
 }
 async function quickAsk(q) { chatInput.value = q; sendMsg(); }
+/* 流式 sendMsg：fetch + ReadableStream 手动解析 SSE
+   （浏览器原生 EventSource 不支持 POST，必须用 fetch） */
 async function sendMsg() {
   const text = chatInput.value.trim();
   if (!text) return;
   addUser(text); chatInput.value = "";
   sendBtn.disabled = true;
-  const tip = addBot("思考中…");
+  // 回答气泡 + 闪烁光标
+  const bubble = document.createElement("div");
+  bubble.className = "msg bot"; bubble.innerHTML = '<span class="status">思考中…</span><span class="cursor"></span>';
+  chatBody.appendChild(bubble); chatBody.scrollTop = chatBody.scrollHeight;
+  const statusEl = bubble.querySelector(".status");
+  let contentEl = null, sourcesEl = null;
+  const queue = [];                 // 待渲染的打字机字符队列
+  let done = false, failed = false;
+
+  // 打字机渲染循环：每 18ms 输出 2 个字符
+  const typer = setInterval(() => {
+    if (!contentEl) return;
+    if (queue.length) {
+      contentEl.textContent += queue.splice(0, 2).join("");
+      chatBody.scrollTop = chatBody.scrollHeight;
+    } else if (done && !bubble.querySelector(".cursor")) {
+      clearInterval(typer);
+    }
+  }, 18);
+
   try {
-    const d = await api(`/api/chat/sessions/${SESSION_ID}/messages`, {method: "POST", body: JSON.stringify({content: text})});
-    tip.textContent = d.content;
-  } catch (e) { tip.textContent = "出错了：" + e.message; }
+    const resp = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN},
+      body: JSON.stringify({session_id: SESSION_ID, question: text}),
+    });
+    if (!resp.ok) {
+      // HTTP 级错误：直接显示中文错误信息
+      const d = await resp.json().catch(() => ({}));
+      bubble.innerHTML = '<span style="color:#e04040">⚠ ' + (d.detail || ("请求失败 " + resp.status)) + "</span>";
+      sendBtn.disabled = false; clearInterval(typer); return;
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const {value, done: rd} = await reader.read();
+      if (rd) break;
+      buf += decoder.decode(value, {stream: true});
+      const frames = buf.split("\n\n");           // SSE 以空行分帧
+      buf = frames.pop();
+      for (const frame of frames) {
+        let ev = "message", data = "";
+        for (const line of frame.split("\n")) {
+          if (line.startsWith("event: ")) ev = line.slice(7);
+          else if (line.startsWith("data: ")) data += line.slice(6);
+        }
+        if (!data) continue;
+        const d = JSON.parse(data);
+        if (ev === "status") { statusEl.textContent = d.message; }
+        else if (ev === "sources") {
+          // 开始生成前：替换状态为正文元素，渲染引用来源
+          statusEl.remove();
+          contentEl = document.createElement("span");
+          bubble.insertBefore(contentEl, bubble.querySelector(".cursor"));
+          sourcesEl = renderSources(d.sources);
+          bubble.insertBefore(sourcesEl, bubble.querySelector(".cursor"));
+        }
+        else if (ev === "delta") {
+          if (!contentEl) { statusEl.remove(); contentEl = document.createElement("span"); bubble.insertBefore(contentEl, bubble.querySelector(".cursor")); }
+          queue.push(...d.content);             // 进打字机队列
+        }
+        else if (ev === "expense") {
+          // 报销单卡片：类型/金额/明细/待补充
+          statusEl.remove();
+          const card = document.createElement("div");
+          card.className = "expense-card";
+          card.innerHTML = "<b>🧾 报销单 #" + d.draft_id + "</b>　" + d.expense_type +
+            "　<b>" + Number(d.total_amount).toFixed(2) + " 元</b><br>" +
+            "明细：" + ((d.fields && (d.fields.details || d.fields.reason)) || "-") +
+            (d.missing_fields.length ? "<br><span style=\"color:#d48806\">待补充：" + d.missing_fields.join("、") + "</span>" : "<br><span style=\"color:#52c41a\">信息完整，可在「我的报销单」中提交</span>");
+          bubble.insertBefore(card, bubble.querySelector(".cursor"));
+        }
+        else if (ev === "error") {
+          failed = true;
+          bubble.innerHTML = '<span style="color:#e04040">⚠ ' + d.message + "</span>";
+        }
+        else if (ev === "done") { done = true; }
+      }
+    }
+    done = true;
+    if (contentEl) { const c = bubble.querySelector(".cursor"); if (c) c.remove(); }
+  } catch (e) {
+    bubble.innerHTML = '<span style="color:#e04040">⚠ 连接中断：' + e.message + "</span>";
+  }
   sendBtn.disabled = false; chatInput.focus();
+}
+
+/* 引用来源折叠块：📎 引用来源（N），点开展开文件名+片段 */
+function renderSources(sources) {
+  const box = document.createElement("div");
+  box.className = "sources";
+  const head = document.createElement("div");
+  head.className = "sources-head";
+  head.textContent = "📎 引用来源（" + sources.length + "）";
+  const list = document.createElement("div");
+  list.className = "sources-list hidden";
+  sources.forEach((s, i) => {
+    const item = document.createElement("div");
+    item.className = "source-item";
+    item.innerHTML = "<b>" + (i + 1) + ". " + s.doc_title + "</b><br>" + s.content.slice(0, 120) + "…";
+    item.title = "点击复制片段";
+    item.onclick = () => { navigator.clipboard.writeText(s.content); toast("片段已复制"); };
+    list.appendChild(item);
+  });
+  head.onclick = () => list.classList.toggle("hidden");
+  box.appendChild(head); box.appendChild(list);
+  return box;
 }
 
 /* ---- 我的报销单 ---- */

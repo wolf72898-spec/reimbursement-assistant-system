@@ -6,13 +6,26 @@ LLM 统一适配层：对话 + Embedding 都走 OpenAI 兼容协议。
 """
 from typing import Optional
 
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 
 from app.core.config import settings
 
 
 def _client(api_key: str, base_url: str) -> OpenAI:
     return OpenAI(api_key=api_key, base_url=base_url)
+
+
+_async_client_instance: Optional[AsyncOpenAI] = None
+
+
+def get_async_client() -> AsyncOpenAI:
+    """异步客户端（SSE 流式输出专用），全局复用（懒加载单例）"""
+    global _async_client_instance
+    if _async_client_instance is None:
+        _async_client_instance = AsyncOpenAI(
+            api_key=settings.LLM_API_KEY, base_url=settings.LLM_BASE_URL
+        )
+    return _async_client_instance
 
 
 def llm_available() -> bool:
@@ -42,3 +55,19 @@ def embed_texts(texts: list) -> list:
     client = _client(settings.EMBED_API_KEY, settings.EMBED_BASE_URL)
     resp = client.embeddings.create(model=settings.EMBED_MODEL, input=texts)
     return [d.embedding for d in resp.data]
+
+
+async def chat_completion_stream(messages: list, temperature: float = 0.3):
+    """
+    流式调用对话模型（SSE 专用）：逐段产出文本增量。
+    temperature=0.3：报销场景要求严谨，降低编造概率。
+    """
+    resp = await get_async_client().chat.completions.create(
+        model=settings.LLM_MODEL,
+        messages=messages,
+        temperature=temperature,
+        stream=True,
+    )
+    async for chunk in resp:
+        if chunk.choices and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
