@@ -11,8 +11,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.llm.client import llm_available
+from app.agent.loop import run_agent
 from app.agent.router import classify_intent
-from app.agent.tools import answer_policy, answer_policy_stream, build_history, extract_expense
+from app.agent.tools import answer_policy, build_history, extract_expense
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
 from app.models.chat import ChatMessage, ChatSession
@@ -193,86 +194,18 @@ async def stream_message(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    SSE 流式问答主入口。
-    事件序列：status → sources → delta* → done（问答）
-             status → expense → delta* → done（报销）
+    SSE 流式对话主入口（Agent 模式，提示词6）。
+    LLM 自主决策调用工具，事件序列（动态）：
+    tool_call → tool_result → sources → delta* → expense → done
     HTTP 级错误（401/403/404/422/503）在流开始前直接返回 JSON。
     """
     history = await _load_context(db, user, body.session_id, body.question)
 
     async def event_gen():
         try:
-            intent = classify_intent(body.question)
-            yield _sse("status", {"message": "正在检索制度…"})
-
-            if intent == "qa":
-                # ---- 路 1：制度问答（RAG + 流式生成）----
-                contexts = await hybrid_search(db, body.question, settings.TOP_K)
-                if contexts is None:
-                    text = "知识库还没有上传任何制度文档，请联系管理员先上传。"
-                    yield _sse("delta", {"content": text})
-                else:
-                    # 推送引用来源（取最高分的 2 个，避免气泡过长）
-                    yield _sse("sources", {"sources": contexts[:2]})
-                    yield _sse("status", {"message": "正在生成回答…"})
-                    full = []
-                    async for piece in answer_policy_stream(
-                        body.question, contexts, history
-                    ):
-                        full.append(piece)
-                        yield _sse("delta", {"content": piece})
-                    text = "".join(full)
-
-                # 回答完整落库，meta 存引用来源
-                db.add(ChatMessage(
-                    session_id=body.session_id, role="assistant",
-                    content=text, meta={"intent": "qa", "contexts": contexts},
-                ))
-                await db.commit()
-                yield _sse("done", {"message": "回答完成"})
-
-            else:
-                # ---- 路 2：报销发起（字段抽取，非流式一次返回）----
-                yield _sse("status", {"message": "正在解析报销信息…"})
-                dialog = history + [{"role": "user", "content": body.question}]
-                extracted = await asyncio.to_thread(extract_expense, dialog)
-
-                if "error" in extracted:
-                    text = "抱歉，信息抽取出了点问题，请换个说法再试一次。"
-                    yield _sse("delta", {"content": text})
-                else:
-                    draft = ExpenseDraft(
-                        user_id=user.id, session_id=body.session_id,
-                        expense_type=extracted.get("expense_type", "未分类"),
-                        total_amount=float(extracted.get("total_amount") or 0),
-                        fields=extracted.get("fields", {}),
-                        missing_fields=extracted.get("missing_fields", []),
-                    )
-                    db.add(draft)
-                    await db.commit()
-                    await db.refresh(draft)
-                    # 推送报销单卡片事件，前端渲染成卡片
-                    yield _sse("expense", {
-                        "draft_id": draft.id,
-                        "expense_type": draft.expense_type,
-                        "total_amount": draft.total_amount,
-                        "fields": draft.fields,
-                        "missing_fields": draft.missing_fields or [],
-                    })
-                    missing = extracted.get("missing_fields") or []
-                    text = (
-                        f"已为你生成报销单草稿。"
-                        + (f"还需要补充：{'、'.join(missing)}。" if missing else "信息完整，可在「我的报销单」中提交。")
-                    )
-                    yield _sse("delta", {"content": text})
-
-                db.add(ChatMessage(
-                    session_id=body.session_id, role="assistant",
-                    content=text, meta={"intent": "expense", "extracted": extracted},
-                ))
-                await db.commit()
-                yield _sse("done", {"message": "处理完成"})
-
+            yield _sse("status", {"message": "智能体思考中…"})
+            async for event, data in run_agent(db, user, body.session_id, history, body.question):
+                yield _sse(event, data)
         except Exception as e:  # 流内错误以 error 事件推送（响应头已发出）
             yield _sse("error", {"code": 500, "message": f"服务异常：{e}"})
 

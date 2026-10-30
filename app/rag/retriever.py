@@ -21,7 +21,25 @@ from app.models.policy import PolicyChunk, PolicyDocument
 
 
 def load_text(raw: bytes, filename: str) -> str:
-    """解析上传的 Markdown/TXT 文件，清理图片与链接语法"""
+    """
+    解析上传文档为纯文本。支持 Markdown/TXT 直接解码；
+    PDF 用 pypdf 逐页抽取（未安装或解析失败时抛出带中文提示的异常）。
+    """
+    name = (filename or "").lower()
+    if name.endswith(".pdf"):
+        try:
+            import io
+
+            from pypdf import PdfReader
+        except ImportError:
+            raise RuntimeError("服务器未安装 pypdf，无法解析 PDF（pip install pypdf）")
+        try:
+            reader = PdfReader(io.BytesIO(raw))
+            return "\n".join(
+                (page.extract_text() or "") for page in reader.pages
+            ).strip()
+        except Exception as e:
+            raise RuntimeError(f"PDF 解析失败：{e}")
     text = raw.decode("utf-8", errors="ignore")
     text = re.sub(r"!\[.*?\]\(.*?\)", "", text)
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)

@@ -9,4 +9,5 @@ openai>=1.30             # 所有供应商统一走 OpenAI 兼容协议
 numpy>=1.26
 rank_bm25>=0.2.2         # BM25 关键词检索
 python-multipart>=0.0.9  # 文件上传
+pypdf>=4.0               # PDF 制度文档解析
 httpx>=0.27              # 测试客户端

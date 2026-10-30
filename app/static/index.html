@@ -3,241 +3,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>报销助手智能体系统</title>
+<title>报销助手智能体 · 报报</title>
 <style>
+  /* ============ 设计体系 ============ */
+  :root {
+    --brand: #5b6cff;          /* 主品牌色：靛蓝 */
+    --brand-deep: #3d4ed8;
+    --accent: #8b5cf6;         /* 渐变辅助：紫 */
+    --mint: #10b981;           /* 成功 */
+    --amber: #f59e0b;          /* 警示 */
+    --rose: #ef4444;           /* 危险 */
+    --ink: #1e2330;            /* 主文字 */
+    --ink-2: #5a6478;          /* 次级文字 */
+    --line: #e7eaf3;           /* 分割线 */
+    --bg: #f4f6fc;             /* 页面底色 */
+    --card: #ffffff;
+    --radius: 14px;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f0f2f5; height: 100vh; }
-  .hidden { display: none !important; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); height: 100vh; overflow: hidden;
+    display: flex;
+  }
 
-  /* ===== 登录页 ===== */
-  #loginPage { display: flex; align-items: center; justify-content: center; height: 100vh; }
-  .login-box { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.08); width: 360px; }
-  .login-box h1 { font-size: 22px; text-align: center; margin-bottom: 6px; color: #1a1a1a; }
-  .login-box p.sub { text-align: center; color: #888; font-size: 13px; margin-bottom: 24px; }
-  .login-box input { width: 100%; padding: 11px 12px; margin-bottom: 14px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; }
-  .login-box input:focus { outline: none; border-color: #4a7cf7; }
-  .btn { width: 100%; padding: 11px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; background: #4a7cf7; color: #fff; }
-  .btn:hover { background: #3a6ce7; }
-  .btn.ghost { background: #fff; color: #4a7cf7; border: 1px solid #4a7cf7; margin-top: 10px; }
-  #loginMsg { color: #e04040; font-size: 13px; text-align: center; min-height: 18px; margin-bottom: 8px; }
+  /* ============ 侧边栏 ============ */
+  aside {
+    width: 250px; background: linear-gradient(180deg, #171c2e 0%, #1d2440 100%);
+    color: #cdd3e6; display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 22px 18px 16px; }
+  .logo .mark {
+    width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; box-shadow: 0 4px 14px rgba(91,108,255,.45);
+  }
+  .logo b { font-size: 16px; color: #fff; letter-spacing: 1px; display:block; }
+  .logo small { display: block; font-size: 11px; color: #7b84a3; font-weight: 400; }
+  .new-chat {
+    margin: 6px 14px 14px; padding: 11px; border: none; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    color: #fff; font-size: 14px; font-weight: 600; letter-spacing: 2px;
+    transition: .2s;
+  }
+  .new-chat:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(91,108,255,.4); }
+  nav { flex: 1; overflow-y: auto; padding: 4px 14px; }
+  .nav-label { font-size: 11px; color: #667089; margin: 14px 6px 6px; letter-spacing: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 9px; cursor: pointer; font-size: 13.5px; margin-bottom: 3px;
+    transition: .15s; border: 1px solid transparent; min-width: 0;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-item.active { background: rgba(91,108,255,.18); color: #fff; border-color: rgba(91,108,255,.35); }
+  .nav-item .ico { width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-item .ses-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side-user {
+    padding: 14px 18px; border-top: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; gap: 10px; font-size: 13px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 15px;
+  }
+  .side-user .meta { flex: 1; min-width: 0; }
+  .side-user b { color: #fff; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side-user span { font-size: 11px; color: #7b84a3; }
+  .side-user button {
+    background: none; border: 1px solid rgba(255,255,255,.2); color: #9aa3c0;
+    border-radius: 7px; padding: 4px 9px; cursor: pointer; font-size: 12px;
+  }
+  .side-user button:hover { color: #fff; border-color: #fff; }
 
-  /* ===== 主界面 ===== */
-  #mainPage { display: flex; height: 100vh; }
-  .sidebar { width: 230px; background: #1f2b3e; color: #cfd8e6; display: flex; flex-direction: column; }
-  .sidebar .logo { padding: 20px 16px; font-size: 16px; font-weight: bold; color: #fff; border-bottom: 1px solid #2c3b53; }
-  .sidebar .user-info { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid #2c3b53; }
-  .sidebar .user-info .role-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; font-size: 11px; background: #4a7cf7; color: #fff; }
-  .sidebar button.nav { background: none; border: none; color: #cfd8e6; text-align: left; padding: 13px 16px; font-size: 14px; cursor: pointer; }
-  .sidebar button.nav:hover { background: #2c3b53; }
-  .sidebar button.nav.active { background: #4a7cf7; color: #fff; }
-  .sidebar .new-chat { margin: 14px 16px 0; padding: 10px; background: #4a7cf7; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
-  .sidebar .spacer { flex: 1; }
-  .sidebar .logout { margin: 16px; padding: 9px; background: none; border: 1px solid #4a5b75; color: #9fb0c8; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  /* ============ 主区 ============ */
+  main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  header.top {
+    height: 60px; background: var(--card); border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; padding: 0 26px; gap: 12px; flex-shrink: 0;
+  }
+  header.top h1 { font-size: 16px; font-weight: 700; }
+  header.top .tag {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: linear-gradient(135deg, rgba(91,108,255,.12), rgba(139,92,246,.12));
+    color: var(--brand-deep); font-weight: 600;
+  }
+  header.top .spacer { flex: 1; }
 
-  .content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .view { flex: 1; overflow-y: auto; display: none; }
+  .view.active { display: block; }
 
-  /* 聊天区 */
-  #chatPanel { flex: 1; display: flex; flex-direction: column; }
-  .chat-head { padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8; font-size: 15px; font-weight: bold; }
-  .chat-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-  .msg { max-width: 72%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
-  .msg.user { align-self: flex-end; background: #4a7cf7; color: #fff; border-bottom-right-radius: 4px; }
-  .msg.bot { align-self: flex-start; background: #fff; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  .chat-input { display: flex; gap: 10px; padding: 16px 24px; background: #fff; border-top: 1px solid #e8e8e8; }
-  .chat-input input { flex: 1; padding: 12px 14px; border: 1px solid #d9d9d9; border-radius: 10px; font-size: 14px; }
-  .chat-input input:focus { outline: none; border-color: #4a7cf7; }
-  .chat-input button { padding: 12px 26px; background: #4a7cf7; color: #fff; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
-  .chat-input button:disabled { background: #a8c0f5; cursor: not-allowed; }
-  .quick-asks { display: flex; gap: 8px; padding: 0 24px 12px; background: #fff; flex-wrap: wrap; }
-  .quick-asks button { padding: 6px 12px; font-size: 12px; background: #f0f4ff; color: #4a7cf7; border: 1px solid #c9d9fb; border-radius: 14px; cursor: pointer; }
+  /* ============ 聊天区 ============ */
+  #view-chat { display: none; flex-direction: column; overflow: hidden; }
+  #view-chat.active { display: flex; }
+  #chatBody { flex: 1; overflow-y: auto; padding: 26px 30px 10px; scroll-behavior: smooth; }
+  .welcome { max-width: 780px; margin: 4vh auto 0; text-align: center; }
+  .welcome .orb {
+    width: 74px; height: 74px; margin: 0 auto 18px; border-radius: 24px;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: flex; align-items: center; justify-content: center; font-size: 36px;
+    box-shadow: 0 12px 34px rgba(91,108,255,.35); animation: float 3.4s ease-in-out infinite;
+  }
+  @keyframes float { 50% { transform: translateY(-7px); } }
+  .welcome h2 { font-size: 22px; margin-bottom: 8px; }
+  .welcome p { color: var(--ink-2); font-size: 14px; line-height: 1.8; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 22px; }
+  .chip {
+    padding: 10px 16px; border-radius: 22px; background: var(--card);
+    border: 1px solid var(--line); font-size: 13px; cursor: pointer; transition: .18s;
+    color: var(--ink); box-shadow: 0 2px 8px rgba(30,35,48,.05);
+  }
+  .chip:hover { border-color: var(--brand); color: var(--brand); transform: translateY(-2px); box-shadow: 0 6px 14px rgba(91,108,255,.15); }
 
-  /* 表格面板 */
-  .panel { flex: 1; overflow-y: auto; padding: 24px; }
-  .panel h2 { font-size: 18px; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-  th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
-  th { background: #f7f9fc; color: #666; }
-  .tag { padding: 2px 10px; border-radius: 10px; font-size: 12px; }
-  .tag.draft { background: #fff7e6; color: #d48806; }
-  .tag.submitted { background: #e6f7ff; color: #1677ff; }
-  .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 16px; }
-  .stat-row { display: flex; gap: 16px; margin-bottom: 20px; }
-  .stat { flex: 1; background: #fff; border-radius: 10px; padding: 18px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-  .stat .num { font-size: 26px; font-weight: bold; color: #4a7cf7; }
-  .stat .label { font-size: 13px; color: #888; margin-top: 4px; }
-  .cursor { display: inline-block; width: 7px; height: 15px; background: #4a7cf7; margin-left: 2px; animation: blink 0.8s infinite; vertical-align: -2px; }
+  .msg { max-width: 760px; margin: 0 auto 18px; display: flex; gap: 12px; animation: rise .25s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+  .msg .who {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .msg.user { flex-direction: row-reverse; }
+  .msg.user .who { background: linear-gradient(135deg, #3a4152, #565f78); color: #fff; }
+  .msg.bot .who { background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff; }
+  .bubble {
+    background: var(--card); border-radius: var(--radius); padding: 13px 17px;
+    font-size: 14px; line-height: 1.85; box-shadow: 0 2px 10px rgba(30,35,48,.06);
+    max-width: 620px; white-space: pre-wrap; word-break: break-word;
+  }
+  .msg.user .bubble { background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff; border-top-right-radius: 4px; }
+  .msg.bot .bubble { border-top-left-radius: 4px; }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: var(--brand); margin-left: 2px; animation: blink .8s infinite; vertical-align: -2px; border-radius: 1px; }
   @keyframes blink { 50% { opacity: 0; } }
-  .status { color: #999; }
-  .sources { margin-top: 8px; border-top: 1px dashed #e0e6ef; padding-top: 6px; }
-  .sources-head { font-size: 12px; color: #4a7cf7; cursor: pointer; user-select: none; }
-  .sources-list { margin-top: 6px; }
-  .source-item { font-size: 12px; color: #666; background: #f7f9fc; border-radius: 6px; padding: 6px 8px; margin-bottom: 5px; line-height: 1.6; cursor: pointer; }
-  .source-item b { color: #333; }
-  .expense-card { margin-top: 8px; background: #f0f7ff; border: 1px solid #c9d9fb; border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.8; }
-  #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
+
+  /* 工具调用过程时间线 */
+  .tool-trace { display: flex; flex-direction: column; gap: 5px; margin-bottom: 9px; }
+  .tool-step {
+    display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2);
+    background: #f6f8ff; border: 1px solid #e3e8ff; border-radius: 9px; padding: 6px 11px;
+    animation: rise .2s ease; flex-wrap: wrap;
+  }
+  .tool-step .t-ico { font-size: 13px; }
+  .tool-step b { color: var(--brand-deep); font-weight: 600; }
+  .tool-step .ok { color: var(--mint); margin-left: auto; }
+  .tool-step .warn { color: var(--amber); margin-left: auto; }
+  .tool-step.running::after { content: "…"; animation: blink 1s infinite; }
+
+  /* 引用来源 */
+  .sources { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+  .sources-head { font-size: 12px; color: var(--brand); cursor: pointer; user-select: none; font-weight: 600; }
+  .sources-list { margin-top: 7px; display: none; }
+  .sources-list.open { display: block; }
+  .source-item {
+    font-size: 12px; color: #666; background: #f7f9fc; border-left: 3px solid var(--brand);
+    border-radius: 6px; padding: 7px 10px; margin-bottom: 5px; line-height: 1.7; cursor: pointer;
+  }
+  .source-item b { color: var(--ink); }
+  .source-item:hover { background: #eef2ff; }
+
+  /* 报销单卡片 */
+  .expense-card {
+    margin-top: 10px; background: linear-gradient(135deg, #f0f7ff, #f5f0ff);
+    border: 1px solid #d5ddfc; border-radius: 12px; padding: 12px 15px;
+    font-size: 13px; line-height: 1.9; animation: rise .25s ease;
+  }
+  .expense-card .card-head { display: flex; align-items: center; gap: 8px; font-weight: 700; flex-wrap: wrap; }
+  .expense-card .amt { color: var(--rose); font-size: 16px; }
+  .expense-card .pill { font-size: 11px; padding: 2px 9px; border-radius: 12px; font-weight: 600; }
+  .pill.mint { background: #e7f8f1; color: var(--mint); }
+  .pill.amber { background: #fef4e2; color: var(--amber); }
+
+  .err-bubble { color: var(--rose); font-weight: 600; }
+
+  /* 输入区 */
+  .composer { padding: 14px 30px 20px; background: linear-gradient(180deg, transparent, var(--bg) 40%); }
+  .composer-inner {
+    max-width: 760px; margin: 0 auto; background: var(--card); border: 1.5px solid var(--line);
+    border-radius: 18px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-end;
+    box-shadow: 0 6px 24px rgba(30,35,48,.08); transition: border-color .2s;
+  }
+  .composer-inner:focus-within { border-color: var(--brand); }
+  #chatInput { flex: 1; border: none; outline: none; resize: none; font-size: 14.5px; font-family: inherit; line-height: 1.6; max-height: 130px; padding: 6px 4px; background: none; }
+  #sendBtn {
+    width: 42px; height: 42px; border: none; border-radius: 13px; cursor: pointer; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff; font-size: 17px;
+    transition: .2s; display: flex; align-items: center; justify-content: center;
+  }
+  #sendBtn:disabled { opacity: .45; cursor: not-allowed; }
+  #sendBtn:not(:disabled):hover { transform: scale(1.06); box-shadow: 0 4px 14px rgba(91,108,255,.4); }
+  .composer-tip { max-width: 760px; margin: 7px auto 0; text-align: center; font-size: 11px; color: #a0a8bd; }
+
+  /* ============ 我的报销单 ============ */
+  .page { max-width: 860px; margin: 0 auto; padding: 26px 30px; }
+  .page h2 { font-size: 19px; margin-bottom: 4px; }
+  .page .sub { color: var(--ink-2); font-size: 13px; margin-bottom: 20px; }
+  .exp-item {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px;
+    transition: .18s; box-shadow: 0 2px 8px rgba(30,35,48,.04);
+  }
+  .exp-item:hover { box-shadow: 0 6px 18px rgba(30,35,48,.1); transform: translateY(-1px); }
+  .exp-item .e-ico {
+    width: 44px; height: 44px; border-radius: 12px; font-size: 21px; flex-shrink: 0;
+    background: #f0f3ff; display: flex; align-items: center; justify-content: center;
+  }
+  .exp-item .e-main { flex: 1; min-width: 0; }
+  .exp-item .e-main b { font-size: 14.5px; }
+  .exp-item .e-main .e-det { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .exp-item .e-amt { font-size: 17px; font-weight: 700; color: var(--ink); }
+  .exp-item .e-amt::after { content: " 元"; font-size: 11px; font-weight: 400; color: var(--ink-2); }
+  .badge { font-size: 11.5px; padding: 4px 11px; border-radius: 14px; font-weight: 600; }
+  .badge.draft { background: #fef4e2; color: var(--amber); }
+  .badge.submitted, .badge.active { background: #e7f8f1; color: var(--mint); }
+  .btn {
+    border: none; border-radius: 9px; padding: 8px 18px; cursor: pointer;
+    font-size: 13px; font-weight: 600; transition: .18s;
+  }
+  .btn.primary { background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff; }
+  .btn.primary:hover { box-shadow: 0 4px 12px rgba(91,108,255,.35); }
+  .btn.ghost { background: #fff; border: 1px solid var(--line); color: var(--ink-2); }
+  .btn.ghost:hover { border-color: var(--rose); color: var(--rose); }
+  .btn.small { padding: 5px 12px; font-size: 12px; border-radius: 7px; }
+  .empty { text-align: center; padding: 60px 0; color: var(--ink-2); font-size: 14px; }
+  .empty .big { font-size: 44px; margin-bottom: 12px; }
+
+  /* ============ 管理员面板 ============ */
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; background: #eaedf6; padding: 4px; border-radius: 11px; width: fit-content; }
+  .tab { padding: 8px 20px; border-radius: 8px; font-size: 13.5px; cursor: pointer; color: var(--ink-2); transition: .18s; border: none; background: none; font-weight: 600; }
+  .tab.active { background: #fff; color: var(--brand-deep); box-shadow: 0 2px 6px rgba(30,35,48,.1); }
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: 0 2px 8px rgba(30,35,48,.04);
+  }
+  .stat .num { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, var(--brand), var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat .lbl { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(30,35,48,.04); }
+  .panel h3 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  input[type=text], input[type=password], select, textarea {
+    width: 100%; border: 1.5px solid var(--line); border-radius: 9px; padding: 9px 12px;
+    font-size: 13.5px; font-family: inherit; outline: none; transition: border-color .2s; background: #fbfcff;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--brand); }
+  textarea { resize: vertical; line-height: 1.7; }
+  .dropzone {
+    border: 2px dashed #cdd5f0; border-radius: var(--radius); padding: 30px; text-align: center;
+    color: var(--ink-2); cursor: pointer; transition: .2s; font-size: 13.5px;
+  }
+  .dropzone:hover, .dropzone.over { border-color: var(--brand); background: #f6f8ff; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--ink-2); font-weight: 600; font-size: 12px; padding: 9px 10px; border-bottom: 1.5px solid var(--line); }
+  td { padding: 10px; border-bottom: 1px solid #f0f2f8; vertical-align: top; line-height: 1.6; }
+  tr.flagged { background: #fff5f5; }
+  .risk-tag { font-size: 11px; background: #fde8e8; color: var(--rose); border-radius: 10px; padding: 2px 8px; margin-right: 4px; display: inline-block; margin-bottom: 2px; }
+  .filters { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .filters select, .filters input { width: auto; min-width: 130px; }
+
+  /* toast 与登录 */
+  #toast { position: fixed; top: 22px; left: 50%; transform: translateX(-50%) translateY(-70px); background: #2a3040; color: #fff; padding: 11px 22px; border-radius: 12px; font-size: 13.5px; z-index: 999; transition: .3s; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #loginMask { position: fixed; inset: 0; background: linear-gradient(135deg, #171c2e 30%, #2a2f6e 100%); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .login-card { width: 380px; background: #fff; border-radius: 20px; padding: 38px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.4); animation: rise .3s ease; }
+  .login-card .logo-big { text-align: center; margin-bottom: 24px; }
+  .login-card .logo-big .orb { width: 62px; height: 62px; margin: 0 auto 12px; border-radius: 20px; background: linear-gradient(135deg, var(--brand), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 10px 26px rgba(91,108,255,.4); }
+  .login-card h2 { text-align: center; font-size: 20px; margin-bottom: 4px; }
+  .login-card .sub { text-align: center; color: var(--ink-2); font-size: 12.5px; margin-bottom: 22px; }
+  .login-card input { margin-bottom: 13px; }
+  .login-card .btn.primary { width: 100%; padding: 12px; font-size: 15px; margin-top: 4px; }
+  .login-card .switch { text-align: center; font-size: 12.5px; color: var(--ink-2); margin-top: 15px; }
+  .login-card .switch a { color: var(--brand); cursor: pointer; font-weight: 600; }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
+
+<!-- ================= 登录/注册 ================= -->
+<div id="loginMask">
+  <div class="login-card">
+    <div class="logo-big">
+      <div class="orb">🤖</div>
+      <h2>报销助手智能体</h2>
+      <div class="sub">会自主核验制度的 AI 报销管家 · 提问 / 校验 / 建单一步到位</div>
+    </div>
+    <input type="text" id="li-user" placeholder="用户名（第一个注册的自动成为管理员）">
+    <input type="password" id="li-pass" placeholder="密码（至少 6 位）">
+    <input type="text" id="li-dept" placeholder="部门（选填，注册时有效）" class="hidden">
+    <button class="btn primary" id="li-btn" onclick="doLogin()">登 录</button>
+    <div class="switch"><span id="li-switch" style="cursor:pointer" onclick="toggleReg()">没有账号？注册新账号 →</span></div>
+  </div>
+</div>
+
+<!-- ================= 侧边栏 ================= -->
+<aside>
+  <div class="logo">
+    <div class="mark">🤖</div>
+    <div><b>报销助手</b><small>报销助手智能体系统 v0.3</small></div>
+  </div>
+  <button class="new-chat" onclick="newChat()">＋ 发起对话</button>
+  <nav id="sessionList"></nav>
+  <div class="side-user">
+    <div class="avatar" id="u-avatar">?</div>
+    <div class="meta"><b id="u-name">未登录</b><span id="u-role"></span></div>
+    <button onclick="logout()">退出</button>
+  </div>
+</aside>
+
+<!-- ================= 主区 ================= -->
+<main>
+  <header class="top">
+    <h1 id="viewTitle">智能体对话</h1>
+    <span class="tag">Agent · Function Calling</span>
+    <div class="spacer"></div>
+  </header>
+
+  <!-- 对话视图 -->
+  <div class="view" id="view-chat">
+    <div id="chatBody">
+      <div class="welcome" id="welcome">
+        <div class="orb">🤖</div>
+        <h2>你好，我是报报</h2>
+        <p>我会先查制度再回答、先校验再建单。<br>试试下面的问题，或直接输入你的需求：</p>
+        <div class="chips">
+          <div class="chip" onclick="quickAsk(this)">去北京出差住宿标准是多少？</div>
+          <div class="chip" onclick="quickAsk(this)">加班餐费能报多少？</div>
+          <div class="chip" onclick="quickAsk(this)">我要报销昨天出差的打车费 38 元和高铁二等座 553 元</div>
+          <div class="chip" onclick="quickAsk(this)">帮我看看我的报销单</div>
+        </div>
+      </div>
+    </div>
+    <div class="composer">
+      <div class="composer-inner">
+        <textarea id="chatInput" rows="1" placeholder="输入问题，或直接说「我要报销…」" onkeydown="inputKey(event)" oninput="autoGrow(this)"></textarea>
+        <button id="sendBtn" onclick="sendMsg()">➤</button>
+      </div>
+      <div class="composer-tip">智能体会自动检索制度 → 校验合规 → 生成报销单，全过程可见</div>
+    </div>
+  </div>
+
+  <!-- 我的报销单 -->
+  <div class="view" id="view-expenses">
+    <div class="page">
+      <h2>我的报销单</h2>
+      <div class="sub">智能体对话中生成的报销单都会出现在这里，信息完整即可提交</div>
+      <div id="expList"></div>
+    </div>
+  </div>
+
+  <!-- 管理员面板 -->
+  <div class="view" id="view-admin">
+    <div class="page">
+      <h2>管理员面板</h2>
+      <div class="sub">知识库 / 提示词模板 / 对话审计</div>
+      <div class="stat-row" id="statRow"></div>
+      <div class="tabs">
+        <button class="tab active" data-tab="kb" onclick="adminTab(this)">📚 知识库</button>
+        <button class="tab" data-tab="pt" onclick="adminTab(this)">✏️ 提示词模板</button>
+        <button class="tab" data-tab="au" onclick="adminTab(this)">🛡️ 对话审计</button>
+      </div>
+      <div id="tab-kb">
+        <div class="panel">
+          <h3>上传制度文档</h3>
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('docFile').click()">
+            📄 点击选择或拖拽文件到此处<br>
+            <small style="color:#9aa">支持 Markdown / TXT / PDF（自动切片 + 向量化）</small>
+          </div>
+          <input type="file" id="docFile" accept=".md,.markdown,.txt,.pdf" class="hidden" onchange="uploadDoc()">
+          <div style="display:flex; gap:10px; margin-top:12px; align-items:center;">
+            <select id="docType" style="width:150px">
+              <option>差旅标准</option><option>发票规则</option><option>审批流程</option><option>通用</option>
+            </select>
+            <button class="btn primary" onclick="uploadDoc()">上传并向量化</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>文档列表</h3>
+          <table><thead><tr><th>标题</th><th>类型</th><th>版本</th><th>切片</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="docList"></tbody></table>
+        </div>
+      </div>
+      <div id="tab-pt" class="hidden">
+        <div class="panel">
+          <h3>提示词模板 <small style="font-weight:400;color:var(--ink-2)">保存后立即对对话生效（存数据库）</small></h3>
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <select id="ptSelect" style="width:220px" onchange="loadPrompt()">
+              <option value="agent">agent · 智能体系统提示词</option>
+              <option value="qa">qa · 制度问答模板</option>
+              <option value="expense">expense · 报销抽取模板</option>
+            </select>
+            <button class="btn ghost small" onclick="resetPrompt()">恢复默认</button>
+          </div>
+          <textarea id="ptContent" rows="16" style="font-size:13px"></textarea>
+          <div style="margin-top:12px; text-align:right;">
+            <button class="btn primary" onclick="savePrompt()">💾 保存（立即生效）</button>
+          </div>
+        </div>
+      </div>
+      <div id="tab-au" class="hidden">
+        <div class="panel">
+          <h3>对话审计 <small style="font-weight:400;color:var(--ink-2)">疑似违规报销自动标红</small></h3>
+          <div class="filters">
+            <select id="auUser"><option value="">全部员工</option></select>
+            <input type="text" id="auStart" placeholder="开始日期 YYYY-MM-DD" style="width:160px">
+            <input type="text" id="auEnd" placeholder="结束日期 YYYY-MM-DD" style="width:160px">
+            <label style="font-size:13px; display:flex; align-items:center; gap:5px;">
+              <input type="checkbox" id="auFlag" style="width:auto" onchange="loadAudit()"> 只看违规
+            </label>
+            <button class="btn primary small" onclick="loadAudit()">查询</button>
+          </div>
+          <table><thead><tr><th style="width:90px">员工</th><th style="width:110px">时间</th><th>内容</th><th style="width:80px">角色</th></tr></thead>
+          <tbody id="auditList"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
 <div id="toast"></div>
 
-<!-- ===== 登录 / 注册 ===== -->
-<div id="loginPage">
-  <div class="login-box">
-    <h1>报销助手智能体系统</h1>
-    <p class="sub">问制度 · 聊着天就把报销单填了</p>
-    <input id="username" placeholder="用户名（首次注册即管理员）">
-    <input id="password" type="password" placeholder="密码（至少 6 位）">
-    <input id="department" placeholder="部门（选填，如：市场部）">
-    <div id="loginMsg"></div>
-    <button class="btn" onclick="doLogin()">登 录</button>
-    <button class="btn ghost" onclick="doRegister()">注册新账号</button>
-  </div>
-</div>
-
-<!-- ===== 主界面 ===== -->
-<div id="mainPage" class="hidden">
-  <div class="sidebar">
-    <div class="logo">💬 报销助手</div>
-    <div class="user-info">你好，<b id="whoami"></b><span class="role-tag" id="roleTag"></span></div>
-    <button class="new-chat" onclick="newChat()">＋ 发起新对话</button>
-    <button class="nav active" id="navChat" onclick="switchTab('chat')">🤖 智能体对话</button>
-    <button class="nav" id="navExp" onclick="switchTab('exp')">📋 我的报销单</button>
-    <button class="nav hidden" id="navAdmin" onclick="switchTab('admin')">⚙️ 管理员面板</button>
-    <div class="spacer"></div>
-    <button class="logout" onclick="location.reload()">退出登录</button>
-  </div>
-
-  <div class="content">
-    <!-- 对话 -->
-    <div id="chatPanel">
-      <div class="chat-head">智能体对话 · 制度问答与报销填报</div>
-      <div class="chat-body" id="chatBody"></div>
-      <div class="quick-asks">
-        <button onclick="quickAsk(this.textContent)">去北京出差住宿标准是多少？</button>
-        <button onclick="quickAsk(this.textContent)">加班餐费能报多少？</button>
-        <button onclick="quickAsk(this.textContent)">我要报销昨天出差的打车费 38 元和高铁二等座 553 元</button>
-      </div>
-      <div class="chat-input">
-        <input id="chatInput" placeholder="输入问题或报销需求，回车发送…" onkeydown="if(event.key==='Enter')sendMsg()">
-        <button id="sendBtn" onclick="sendMsg()">发送</button>
-      </div>
-    </div>
-
-    <!-- 我的报销单 -->
-    <div id="expPanel" class="panel hidden">
-      <h2>我的报销单</h2>
-      <table id="expTable">
-        <thead><tr><th>编号</th><th>类型</th><th>金额（元）</th><th>明细</th><th>待补充</th><th>状态</th><th>操作</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- 管理员 -->
-    <div id="adminPanel" class="panel hidden">
-      <h2>管理员面板</h2>
-      <div class="stat-row" id="statRow"></div>
-      <div class="card">
-        <b>上传报销制度文档</b>
-        <p style="color:#888;font-size:13px;margin:8px 0 12px;">支持 Markdown / TXT，同名文档重复上传自动升版本</p>
-        <input type="file" id="docFile" accept=".md,.txt" style="margin-right:12px;">
-        <select id="docType" style="padding:7px;border:1px solid #d9d9d9;border-radius:6px;">
-          <option>差旅标准</option><option>发票规则</option><option>审批流程</option><option>通用</option>
-        </select>
-        <button class="btn" style="width:auto;padding:8px 22px;margin-left:12px;" onclick="uploadDoc()">上传并向量化</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
-let TOKEN = "", ROLE = "", SESSION_ID = null;
+/* ==================== 基础状态 ==================== */
+let TOKEN = localStorage.getItem("ra_token") || "";
+let ROLE = localStorage.getItem("ra_role") || "";
+let USERNAME = localStorage.getItem("ra_username") || "";
+let USER_ID = localStorage.getItem("ra_uid") || "";
+let SESSIONS = [];
+let SESSION_ID = null;
 
-function toast(t) { const el = document.getElementById("toast"); el.textContent = t; el.style.display = "block"; setTimeout(() => el.style.display = "none", 2500); }
-async function api(path, opts = {}) {
-  opts.headers = Object.assign({"Content-Type": "application/json"}, TOKEN ? {"Authorization": "Bearer " + TOKEN} : {}, opts.headers || {});
-  const r = await fetch(path, opts);
-  if (r.status === 401) { location.reload(); throw new Error("登录过期"); }
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.detail || ("请求失败 " + r.status));
-  return data;
+const $ = (id) => document.getElementById(id);
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2400);
 }
 
-/* ---- 登录注册 ---- */
-async function doRegister() {
-  const u = username.value.trim(), p = password.value;
-  if (!u || p.length < 6) return loginMsg.textContent = "请填写用户名，密码至少 6 位";
-  try {
-    await api("/api/auth/register", {method: "POST", body: JSON.stringify({username: u, password: p, department: department.value})});
-    loginMsg.style.color = "#52c41a"; loginMsg.textContent = "注册成功，正在自动登录…";
-    setTimeout(doLogin, 500);
-  } catch (e) { loginMsg.style.color = "#e04040"; loginMsg.textContent = e.message; }
+async function api(path, opts = {}) {
+  opts.headers = Object.assign({"Content-Type": "application/json"},
+    TOKEN ? {"Authorization": "Bearer " + TOKEN} : {}, opts.headers || {});
+  if (opts.body && typeof opts.body !== "string") opts.body = JSON.stringify(opts.body);
+  const r = await fetch(path, opts);
+  if (r.status === 401) { logout(); throw new Error("登录已过期，请重新登录"); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof d.detail === "string" ? d.detail : JSON.stringify(d.detail || ("请求失败 " + r.status)));
+  return d;
+}
+
+/* ==================== 登录/注册 ==================== */
+let regMode = false;
+function toggleReg() {
+  regMode = !regMode;
+  $("li-dept").classList.toggle("hidden", !regMode);
+  $("li-btn").textContent = regMode ? "注 册" : "登 录";
+  $("li-switch").textContent = regMode ? "已有账号？去登录 →" : "没有账号？注册新账号 →";
 }
 async function doLogin() {
-  const u = username.value.trim(), p = password.value;
-  if (!u || !p) return loginMsg.textContent = "请填写用户名和密码";
+  const username = $("li-user").value.trim(), password = $("li-pass").value.trim();
+  if (!username || !password) return toast("请填写用户名和密码");
   try {
-    const d = await api("/api/auth/login", {method: "POST", body: JSON.stringify({username: u, password: p})});
-    TOKEN = d.access_token; ROLE = d.role;
-    sessionStorage.setItem("tk", TOKEN);
-    enterMain(u);
-  } catch (e) { loginMsg.style.color = "#e04040"; loginMsg.textContent = e.message; }
+    if (regMode) {
+      await api("/api/auth/register", {method: "POST", body: {
+        username, password, department: $("li-dept").value.trim()}});
+    }
+    const d = await api("/api/auth/login", {method: "POST", body: {username, password}});
+    TOKEN = d.access_token; ROLE = d.role; USERNAME = username;
+    const me = await api("/api/auth/me");
+    USER_ID = me.id;
+    localStorage.setItem("ra_token", TOKEN); localStorage.setItem("ra_role", ROLE);
+    localStorage.setItem("ra_username", USERNAME); localStorage.setItem("ra_uid", USER_ID);
+    enterApp();
+  } catch (e) { toast(e.message); }
 }
-function enterMain(u) {
-  loginPage.classList.add("hidden"); mainPage.classList.remove("hidden");
-  whoami.textContent = u; roleTag.textContent = ROLE === "admin" ? "管理员" : "员工";
-  if (ROLE === "admin") navAdmin.classList.remove("hidden");
-  newChat();
-  addBot("你好！我是你的报销助手 🤖\n可以问我报销制度（如住宿标准、发票要求），也可以直接告诉我要报销什么，我帮你填单。\n试试下面的问题，或直接输入。");
+function logout() {
+  TOKEN = ""; localStorage.clear();
+  $("loginMask").classList.remove("hidden");
+}
+async function enterApp() {
+  $("loginMask").classList.add("hidden");
+  $("u-name").textContent = USERNAME;
+  $("u-role").textContent = ROLE === "admin" ? "管理员" : "普通员工";
+  $("u-avatar").textContent = USERNAME[0].toUpperCase();
+  renderNav();
+  await refreshSessions();
+  showView("chat");
+  if (ROLE === "admin") { loadStats(); loadDocs(); loadPrompts(); loadAuditUsers(); loadAudit(); }
 }
 
-/* ---- 对话 ---- */
-function switchTab(t) {
-  chatPanel.classList.toggle("hidden", t !== "chat");
-  expPanel.classList.toggle("hidden", t !== "exp");
-  adminPanel.classList.toggle("hidden", t !== "admin");
-  navChat.classList.toggle("active", t === "chat");
-  navExp.classList.toggle("active", t === "exp");
-  navAdmin.classList.toggle("active", t === "admin");
-  if (t === "exp") loadExpenses();
-  if (t === "admin") loadAdmin();
+/* ==================== 导航 ==================== */
+const VIEWS = [["chat", "🤖", "智能体对话"], ["expenses", "📋", "我的报销单"]];
+function renderNav() {
+  const nav = $("sessionList");
+  nav.innerHTML = '<div class="nav-label">功能</div>' +
+    VIEWS.map(([v, ico, name]) =>
+      `<div class="nav-item" data-v="${v}" onclick="showView('${v}')"><span class="ico">${ico}</span>${name}</div>`
+    ).join("") +
+    (ROLE === "admin" ? `<div class="nav-item" data-v="admin" onclick="showView('admin')"><span class="ico">⚙️</span>管理员面板</div>` : "") +
+    '<div class="nav-label">最近会话</div>' +
+    SESSIONS.map(s =>
+      `<div class="nav-item ses" data-sid="${s.id}" onclick="openSession(${s.id})"><span class="ico">💬</span><span class="ses-title">${esc(s.title || "新对话")}</span></div>`
+    ).join("");
 }
-function addMsg(cls, text) {
-  const div = document.createElement("div"); div.className = "msg " + cls; div.textContent = text;
-  chatBody.appendChild(div); chatBody.scrollTop = chatBody.scrollHeight; return div;
+function showView(v) {
+  document.querySelectorAll(".view").forEach(e => e.classList.remove("active"));
+  $("view-" + v).classList.add("active");
+  $("viewTitle").textContent = {chat: "智能体对话", expenses: "我的报销单", admin: "管理员面板"}[v];
+  document.querySelectorAll(".nav-item").forEach(e => e.classList.toggle("active", e.dataset.v === v));
+  if (v === "expenses") loadExpenses();
+  if (v === "admin" && ROLE === "admin") { loadStats(); loadDocs(); loadAudit(); }
 }
-const addBot = t => addMsg("bot", t), addUser = t => addMsg("user", t);
 async function newChat() {
-  if (!TOKEN) return;
   const s = await api("/api/chat/sessions", {method: "POST"});
-  SESSION_ID = s.id; chatBody.innerHTML = "";
+  await refreshSessions();
+  openSession(s.id);
 }
-async function quickAsk(q) { chatInput.value = q; sendMsg(); }
-/* 流式 sendMsg：fetch + ReadableStream 手动解析 SSE
-   （浏览器原生 EventSource 不支持 POST，必须用 fetch） */
-async function sendMsg() {
-  const text = chatInput.value.trim();
-  if (!text) return;
-  addUser(text); chatInput.value = "";
-  sendBtn.disabled = true;
-  // 回答气泡 + 闪烁光标
-  const bubble = document.createElement("div");
-  bubble.className = "msg bot"; bubble.innerHTML = '<span class="status">思考中…</span><span class="cursor"></span>';
-  chatBody.appendChild(bubble); chatBody.scrollTop = chatBody.scrollHeight;
-  const statusEl = bubble.querySelector(".status");
-  let contentEl = null, sourcesEl = null;
-  const queue = [];                 // 待渲染的打字机字符队列
-  let done = false, failed = false;
+async function refreshSessions() {
+  SESSIONS = await api("/api/chat/sessions");
+  renderNav();
+  // 保持当前高亮
+  document.querySelectorAll(".nav-item").forEach(e => e.classList.toggle("active", e.dataset.v === "chat"));
+}
+async function openSession(id) {
+  SESSION_ID = id;
+  $("welcome").classList.add("hidden");
+  $("chatBody").innerHTML = "";
+  showView("chat");
+  const msgs = await api(`/api/chat/sessions/${id}/messages`);
+  for (const m of msgs) {
+    if (m.role === "user") addUser(m.content, true);
+    else {
+      const b = addBot();
+      b.innerHTML = esc(m.content).replace(/\n/g, "<br>");
+      if (m.meta && m.meta.sources && m.meta.sources.length) b.appendChild(renderSources(m.meta.sources));
+      if (m.meta && m.meta.drafts && m.meta.drafts.length) renderHistoryDrafts(b, m.meta.drafts);
+    }
+  }
+  $("chatBody").scrollTop = $("chatBody").scrollHeight;
+}
+function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
 
-  // 打字机渲染循环：每 18ms 输出 2 个字符
+/* ==================== 聊天（Agent 流式） ==================== */
+function quickAsk(el) { $("chatInput").value = el.textContent; sendMsg(); }
+function inputKey(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
+function autoGrow(el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 130) + "px"; }
+function addUser(text, silent) {
+  const div = document.createElement("div");
+  div.className = "msg user";
+  div.innerHTML = `<div class="who">🧑</div><div class="bubble">${esc(text)}</div>`;
+  $("chatBody").appendChild(div);
+  if (!silent) $("chatBody").scrollTop = $("chatBody").scrollHeight;
+}
+function addBot() {
+  const div = document.createElement("div");
+  div.className = "msg bot";
+  div.innerHTML = `<div class="who">🤖</div><div class="bubble"></div>`;
+  $("chatBody").appendChild(div);
+  return div.querySelector(".bubble");
+}
+
+async function sendMsg() {
+  const input = $("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+  if (!SESSION_ID) {  // 没有会话则自动创建
+    const s = await api("/api/chat/sessions", {method: "POST"});
+    SESSION_ID = s.id;
+    await refreshSessions();
+  }
+  input.value = ""; autoGrow(input);
+  $("welcome").classList.add("hidden");
+  addUser(text);
+  $("sendBtn").disabled = true;
+
+  const bubble = addBot();
+  const trace = document.createElement("div"); trace.className = "tool-trace";
+  const contentEl = document.createElement("span");
+  const cursor = document.createElement("span"); cursor.className = "cursor";
+  bubble.append(trace, contentEl, cursor);
+  $("chatBody").scrollTop = $("chatBody").scrollHeight;
+
+  // 打字机渲染队列：每 16ms 输出 2 字符
+  const queue = [];
   const typer = setInterval(() => {
-    if (!contentEl) return;
     if (queue.length) {
       contentEl.textContent += queue.splice(0, 2).join("");
-      chatBody.scrollTop = chatBody.scrollHeight;
-    } else if (done && !bubble.querySelector(".cursor")) {
-      clearInterval(typer);
+      $("chatBody").scrollTop = $("chatBody").scrollHeight;
     }
-  }, 18);
+  }, 16);
 
   try {
     const resp = await fetch("/api/chat/stream", {
@@ -246,10 +595,9 @@ async function sendMsg() {
       body: JSON.stringify({session_id: SESSION_ID, question: text}),
     });
     if (!resp.ok) {
-      // HTTP 级错误：直接显示中文错误信息
       const d = await resp.json().catch(() => ({}));
-      bubble.innerHTML = '<span style="color:#e04040">⚠ ' + (d.detail || ("请求失败 " + resp.status)) + "</span>";
-      sendBtn.disabled = false; clearInterval(typer); return;
+      bubble.innerHTML = `<span class="err-bubble">⚠ ${esc(typeof d.detail === "string" ? d.detail : "请求失败 " + resp.status)}</span>`;
+      clearInterval(typer); $("sendBtn").disabled = false; return;
     }
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
@@ -258,7 +606,7 @@ async function sendMsg() {
       const {value, done: rd} = await reader.read();
       if (rd) break;
       buf += decoder.decode(value, {stream: true});
-      const frames = buf.split("\n\n");           // SSE 以空行分帧
+      const frames = buf.split("\n\n");
       buf = frames.pop();
       for (const frame of frames) {
         let ev = "message", data = "";
@@ -267,47 +615,61 @@ async function sendMsg() {
           else if (line.startsWith("data: ")) data += line.slice(6);
         }
         if (!data) continue;
-        const d = JSON.parse(data);
-        if (ev === "status") { statusEl.textContent = d.message; }
-        else if (ev === "sources") {
-          // 开始生成前：替换状态为正文元素，渲染引用来源
-          statusEl.remove();
-          contentEl = document.createElement("span");
-          bubble.insertBefore(contentEl, bubble.querySelector(".cursor"));
-          sourcesEl = renderSources(d.sources);
-          bubble.insertBefore(sourcesEl, bubble.querySelector(".cursor"));
-        }
-        else if (ev === "delta") {
-          if (!contentEl) { statusEl.remove(); contentEl = document.createElement("span"); bubble.insertBefore(contentEl, bubble.querySelector(".cursor")); }
-          queue.push(...d.content);             // 进打字机队列
-        }
-        else if (ev === "expense") {
-          // 报销单卡片：类型/金额/明细/待补充
-          statusEl.remove();
-          const card = document.createElement("div");
-          card.className = "expense-card";
-          card.innerHTML = "<b>🧾 报销单 #" + d.draft_id + "</b>　" + d.expense_type +
-            "　<b>" + Number(d.total_amount).toFixed(2) + " 元</b><br>" +
-            "明细：" + ((d.fields && (d.fields.details || d.fields.reason)) || "-") +
-            (d.missing_fields.length ? "<br><span style=\"color:#d48806\">待补充：" + d.missing_fields.join("、") + "</span>" : "<br><span style=\"color:#52c41a\">信息完整，可在「我的报销单」中提交</span>");
-          bubble.insertBefore(card, bubble.querySelector(".cursor"));
-        }
-        else if (ev === "error") {
-          failed = true;
-          bubble.innerHTML = '<span style="color:#e04040">⚠ ' + d.message + "</span>";
-        }
-        else if (ev === "done") { done = true; }
+        handleEvent(ev, JSON.parse(data), {trace, queue, bubble, cursor});
       }
     }
-    done = true;
-    if (contentEl) { const c = bubble.querySelector(".cursor"); if (c) c.remove(); }
   } catch (e) {
-    bubble.innerHTML = '<span style="color:#e04040">⚠ 连接中断：' + e.message + "</span>";
+    bubble.innerHTML = `<span class="err-bubble">⚠ 连接中断：${esc(e.message)}</span>`;
   }
-  sendBtn.disabled = false; chatInput.focus();
+  clearInterval(typer);
+  const c = bubble.querySelector(".cursor"); if (c) c.remove();
+  $("sendBtn").disabled = false;
+  refreshSessions();
 }
 
-/* 引用来源折叠块：📎 引用来源（N），点开展开文件名+片段 */
+/* SSE 事件分发：工具过程 / 来源 / 正文 / 报销卡片 / 错误 */
+function handleEvent(ev, d, ui) {
+  if (ev === "tool_call") {
+    const ICONS = {search_policy: "📚", get_expense_standard: "📏", validate_expense: "🛡️",
+      create_draft: "🧾", update_draft: "✏️", get_my_drafts: "📋", submit_draft: "🚀"};
+    const step = document.createElement("div");
+    step.className = "tool-step running";
+    step.innerHTML = `<span class="t-ico">${ICONS[d.name] || "🔧"}</span>调用 <b>${d.name}</b>`;
+    ui.trace.appendChild(step);
+    $("chatBody").scrollTop = $("chatBody").scrollHeight;
+  }
+  else if (ev === "tool_result") {
+    const step = ui.trace.lastElementChild;
+    if (step) {
+      step.classList.remove("running");
+      const warn = /未通过|被拒|失败|错误|拒绝/.test(d.summary);
+      step.innerHTML += `<span class="${warn ? "warn" : "ok"}">${warn ? "⚠" : "✓"} ${esc(d.summary)}</span>`;
+    }
+  }
+  else if (ev === "sources") {
+    const old = ui.bubble.querySelector(".sources"); if (old) old.remove();
+    ui.bubble.insertBefore(renderSources(d.sources), ui.bubble.querySelector(".cursor"));
+  }
+  else if (ev === "delta") { for (const ch of d.content) ui.queue.push(ch); }
+  else if (ev === "expense") {
+    const card = document.createElement("div");
+    card.className = "expense-card";
+    const miss = d.missing_fields && d.missing_fields.length;
+    card.innerHTML =
+      `<div class="card-head">🧾 报销单 #${d.draft_id}　${esc(d.expense_type)}
+        <span class="amt">${Number(d.total_amount).toFixed(2)}</span>元
+        <span class="pill ${miss ? "amber" : "mint"}">${d.status === "submitted" ? "已提交" : miss ? "待补充" : "信息完整"}</span></div>
+      <div>明细：${esc((d.fields && (d.fields.details || d.fields.reason)) || "—")}　日期：${esc((d.fields && d.fields.expense_date) || "—")}</div>` +
+      (miss ? `<div style="color:var(--amber)">待补充：${esc(d.missing_fields.join("、"))}（直接回复即可补齐）</div>`
+            : `<div style="color:var(--mint)">可在「我的报销单」中提交</div>`);
+    ui.bubble.insertBefore(card, ui.bubble.querySelector(".cursor"));
+  }
+  else if (ev === "error") {
+    ui.bubble.innerHTML = `<span class="err-bubble">⚠ ${esc(d.message)}</span>`;
+  }
+}
+
+/* 引用来源折叠块 */
 function renderSources(sources) {
   const box = document.createElement("div");
   box.className = "sources";
@@ -315,55 +677,172 @@ function renderSources(sources) {
   head.className = "sources-head";
   head.textContent = "📎 引用来源（" + sources.length + "）";
   const list = document.createElement("div");
-  list.className = "sources-list hidden";
+  list.className = "sources-list";
   sources.forEach((s, i) => {
     const item = document.createElement("div");
     item.className = "source-item";
-    item.innerHTML = "<b>" + (i + 1) + ". " + s.doc_title + "</b><br>" + s.content.slice(0, 120) + "…";
+    item.innerHTML = `<b>${i + 1}. ${esc(s.doc_title)}</b><br>${esc(s.content.slice(0, 140))}…`;
     item.title = "点击复制片段";
     item.onclick = () => { navigator.clipboard.writeText(s.content); toast("片段已复制"); };
     list.appendChild(item);
   });
-  head.onclick = () => list.classList.toggle("hidden");
-  box.appendChild(head); box.appendChild(list);
+  head.onclick = () => list.classList.toggle("open");
+  box.append(head, list);
   return box;
 }
-
-/* ---- 我的报销单 ---- */
-async function loadExpenses() {
-  const list = await api("/api/expenses/my");
-  const tb = expTable.querySelector("tbody"); tb.innerHTML = "";
-  if (!list.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;padding:30px;">还没有报销单，去对话页告诉助手你要报销什么吧</td></tr>'; return; }
-  list.forEach(d => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>#${d.id}</td><td>${d.expense_type}</td><td>${d.total_amount.toFixed(2)}</td>
-      <td>${(d.fields && (d.fields.details || d.fields.reason)) || "-"}</td>
-      <td>${(d.missing_fields || []).join("、") || "-"}</td>
-      <td><span class="tag ${d.status}">${d.status === "draft" ? "草稿" : "已提交"}</span></td>
-      <td>${d.status === "draft" ? '<button class="btn" style="width:auto;padding:5px 14px;font-size:12px;" onclick="submitExp(' + d.id + ')">提交</button>' : "-"}</td>`;
-    tb.appendChild(tr);
+function renderHistoryDrafts(bubble, draftIds) {
+  draftIds.forEach(id => {
+    const card = document.createElement("div");
+    card.className = "expense-card";
+    card.innerHTML = `<div class="card-head">🧾 报销单 #${id} <span style="font-weight:400;font-size:12px;color:var(--ink-2)">详见「我的报销单」</span></div>`;
+    bubble.appendChild(card);
   });
 }
-async function submitExp(id) { await api(`/api/expenses/${id}/submit`, {method: "POST"}); toast("已提交"); loadExpenses(); }
 
-/* ---- 管理员 ---- */
-async function loadAdmin() {
-  const s = await api("/api/admin/overview");
-  statRow.innerHTML = [["用户数", s.users], ["会话数", s.sessions], ["待提交草稿", s.drafts], ["已提交", s.submitted]]
-    .map(([l, n]) => `<div class="stat"><div class="num">${n}</div><div class="label">${l}</div></div>`).join("");
+/* ==================== 我的报销单 ==================== */
+async function loadExpenses() {
+  const list = await api("/api/expenses/my");
+  const box = $("expList");
+  if (!list.length) {
+    box.innerHTML = `<div class="empty"><div class="big">🧾</div>还没有报销单<br><small>去「智能体对话」里说一句「我要报销…」试试</small></div>`;
+    return;
+  }
+  box.innerHTML = list.map(d => `
+    <div class="exp-item">
+      <div class="e-ico">${d.expense_type.includes("差旅") ? "🚄" : d.expense_type.includes("交通") ? "🚕" : d.expense_type.includes("餐饮") ? "🍽️" : "🧾"}</div>
+      <div class="e-main"><b>#${d.id} ${esc(d.expense_type)}</b>
+        <div class="e-det">${esc((d.fields && (d.fields.details || d.fields.expense_date)) || "—")}
+        ${d.missing_fields && d.missing_fields.length ? "　<span style='color:var(--amber)'>待补充：" + esc(d.missing_fields.join("、")) + "</span>" : ""}</div></div>
+      <div class="e-amt">${Number(d.total_amount).toFixed(2)}</div>
+      <span class="badge ${d.status}">${d.status === "submitted" ? "已提交" : "草稿"}</span>
+      ${d.status === "draft" ? `<button class="btn primary small" onclick="submitExpense(${d.id})">提交</button>` : ""}
+    </div>`).join("");
 }
-async function uploadDoc() {
-  const f = docFile.files[0];
-  if (!f) return toast("请先选择文件");
-  const fd = new FormData(); fd.append("file", f);
+async function submitExpense(id) {
   try {
-    const r = await fetch(`/api/knowledge/documents?doc_type=${encodeURIComponent(docType.value)}`,
-      {method: "POST", headers: {"Authorization": "Bearer " + TOKEN}, body: fd});
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.detail || "上传失败");
-    toast(`上传成功：${d.title}（${d.chunks} 个片段）`);
+    await api(`/api/expenses/${id}/submit`, {method: "POST"});
+    toast("报销单已提交"); loadExpenses();
   } catch (e) { toast(e.message); }
 }
+
+/* ==================== 管理员面板 ==================== */
+function adminTab(el) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  ["kb", "pt", "au"].forEach(t => $("tab-" + t).classList.toggle("hidden", t !== el.dataset.tab));
+  if (el.dataset.tab === "pt") loadPrompts();
+  if (el.dataset.tab === "au") loadAudit();
+}
+async function loadStats() {
+  const s = await api("/api/admin/overview");
+  $("statRow").innerHTML = [
+    [s.users, "注册用户"], [s.sessions, "对话会话"], [s.drafts, "待提交草稿"], [s.submitted, "已提交报销单"],
+  ].map(([n, l]) => `<div class="stat"><div class="num">${n}</div><div class="lbl">${l}</div></div>`).join("");
+}
+
+/* ---- 知识库 ---- */
+const dropzone = $("dropzone");
+["dragover", "dragleave", "drop"].forEach(evName =>
+  dropzone.addEventListener(evName, e => {
+    e.preventDefault();
+    dropzone.classList.toggle("over", evName === "dragover");
+    if (evName === "drop" && e.dataTransfer.files.length) {
+      $("docFile").files = e.dataTransfer.files;
+      toast("已选择：" + e.dataTransfer.files[0].name);
+    }
+  })
+);
+async function uploadDoc() {
+  const f = $("docFile").files[0];
+  if (!f) return toast("请先选择文件");
+  const fd = new FormData();
+  fd.append("file", f);
+  const r = await fetch(`/api/knowledge/documents?doc_type=${encodeURIComponent($("docType").value)}`, {
+    method: "POST", headers: {"Authorization": "Bearer " + TOKEN}, body: fd,
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) return toast(typeof d.detail === "string" ? d.detail : "上传失败");
+  toast(`《${d.title}》上传成功，切片 ${d.chunks} 块`);
+  $("docFile").value = "";
+  loadDocs(); loadStats();
+}
+async function loadDocs() {
+  const docs = await api("/api/knowledge/documents");
+  $("docList").innerHTML = docs.length ? docs.map(d => `
+    <tr><td><b>${esc(d.title)}</b></td><td>${esc(d.doc_type)}</td><td>v${d.version}</td>
+    <td>${d.chunks}</td><td><span class="badge ${d.status === "active" ? "active" : "draft"}">${d.status === "active" ? "生效中" : "已归档"}</span></td>
+    <td><button class="btn ghost small" onclick="delDoc(${d.id})">删除</button></td></tr>`).join("")
+    : `<tr><td colspan="6" style="text-align:center;color:var(--ink-2)">暂无文档，先上传一份制度吧</td></tr>`;
+}
+async function delDoc(id) {
+  if (!confirm("确定删除该文档吗？其全部切片将被移除。")) return;
+  try { await api(`/api/knowledge/documents/${id}`, {method: "DELETE"}); toast("已删除"); loadDocs(); }
+  catch (e) { toast(e.message); }
+}
+
+/* ---- 提示词模板 ---- */
+async function loadPrompts() {
+  const sel = $("ptSelect");
+  const cur = sel.value;
+  loadPrompt();
+  if (cur) sel.value = cur;
+}
+async function loadPrompt() {
+  const name = $("ptSelect").value;
+  const list = await api("/api/admin/prompts");
+  const p = list.find(x => x.name === name);
+  $("ptContent").value = p ? p.content : "";
+}
+async function savePrompt() {
+  const name = $("ptSelect").value;
+  try {
+    const d = await api(`/api/admin/prompts/${name}`, {method: "PUT", body: {content: $("ptContent").value}});
+    toast(d.message);
+  } catch (e) { toast(e.message); }
+}
+async function resetPrompt() {
+  if (!confirm("确定恢复该模板为内置默认吗？")) return;
+  const name = $("ptSelect").value;
+  try {
+    const d = await api(`/api/admin/prompts/${name}/reset`, {method: "POST"});
+    toast(d.message); loadPrompt();
+  } catch (e) { toast(e.message); }
+}
+
+/* ---- 对话审计 ---- */
+async function loadAuditUsers() {
+  const users = await api("/api/admin/audit/users");
+  $("auUser").innerHTML = '<option value="">全部员工</option>' +
+    users.map(u => `<option value="${u.id}">${esc(u.username)}（${esc(u.department || "—")}）</option>`).join("");
+}
+async function loadAudit() {
+  const p = new URLSearchParams();
+  if ($("auUser").value) p.set("user_id", $("auUser").value);
+  if ($("auStart").value) p.set("start", $("auStart").value);
+  if ($("auEnd").value) p.set("end", $("auEnd").value);
+  if ($("auFlag").checked) p.set("flagged_only", "true");
+  try {
+    const d = await api("/api/admin/audit?" + p.toString());
+    $("auditList").innerHTML = d.items.length ? d.items.map(m => `
+      <tr class="${m.flagged ? "flagged" : ""}">
+        <td><b>${esc(m.username)}</b><br><small style="color:var(--ink-2)">${esc(m.department || "")}</small></td>
+        <td><small>${esc((m.created_at || "").slice(5, 16))}</small></td>
+        <td>${m.flagged ? m.risk_reasons.map(r => `<span class="risk-tag">⚠ ${esc(r)}</span>`).join("") : ""}${esc(m.content.slice(0, 160))}</td>
+        <td><small>${m.role === "user" ? "员工" : "智能体"}</small></td>
+      </tr>`).join("")
+      : `<tr><td colspan="4" style="text-align:center;color:var(--ink-2)">没有符合条件的记录</td></tr>`;
+  } catch (e) { toast(e.message); }
+}
+
+/* ==================== 启动 ==================== */
+(async function init() {
+  if (!TOKEN) return;  // 未登录，停在登录页
+  try {
+    const me = await api("/api/auth/me");
+    USER_ID = me.id; ROLE = me.role; USERNAME = me.username;
+    await enterApp();
+  } catch (e) { /* token 失效，停留登录页 */ }
+})();
 </script>
 </body>
 </html>

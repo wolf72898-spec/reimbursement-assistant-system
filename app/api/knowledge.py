@@ -6,7 +6,7 @@
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.llm.client import embed_texts, llm_available
@@ -35,9 +35,17 @@ async def upload_document(
             status.HTTP_503_SERVICE_UNAVAILABLE, "Embedding 未配置，无法向量化"
         )
     raw = await file.read()
-    text = load_text(raw, file.filename or "doc.md")
+    if not raw:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "文件为空")
+    fname = file.filename or "doc.md"
+    if not fname.lower().endswith((".md", ".markdown", ".txt", ".pdf")):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "仅支持 Markdown / TXT / PDF 文件")
+    try:
+        text = load_text(raw, fname)
+    except RuntimeError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
     if not text.strip():
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "文档内容为空")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "文档内容为空（PDF 可能是扫描件，暂不支持纯图片 PDF）")
 
     # 同名文档 → 旧版归档，新版本号 +1
     title = os.path.splitext(file.filename or "未命名")[0]
@@ -90,14 +98,49 @@ async def list_documents(
     user=Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """管理员查看知识库文档列表"""
+    """管理员查看知识库文档列表（含切片数）"""
     rows = await db.execute(
         select(PolicyDocument).order_by(PolicyDocument.id.desc())
     )
+    chunk_counts = dict(await db.execute(
+        select(PolicyChunk.document_id, func.count())
+        .group_by(PolicyChunk.document_id)
+    ))
     return [
         {
             "id": d.id, "title": d.title, "doc_type": d.doc_type,
-            "version": d.version, "status": d.status, "created_at": str(d.created_at),
+            "version": d.version, "status": d.status,
+            "chunks": chunk_counts.get(d.id, 0),
+            "created_at": str(d.created_at),
         }
         for d in rows.scalars().all()
     ]
+
+
+@router.delete("/documents/{doc_id}")
+async def delete_document(
+    doc_id: int,
+    user=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """删除文档及其全部切片（同时清理磁盘原件）"""
+    doc = await db.get(PolicyDocument, doc_id)
+    if doc is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "文档不存在")
+    # 删除切片
+    chunks = (
+        await db.execute(
+            select(PolicyChunk).where(PolicyChunk.document_id == doc_id)
+        )
+    ).scalars().all()
+    for c in chunks:
+        await db.delete(c)
+    await db.delete(doc)
+    await db.commit()
+    # 磁盘原件清理（失败不影响主流程）
+    try:
+        if doc.file_path and os.path.exists(doc.file_path):
+            os.remove(doc.file_path)
+    except OSError:
+        pass
+    return {"ok": True, "message": f"文档《{doc.title}》已删除（含 {len(chunks)} 个切片）"}

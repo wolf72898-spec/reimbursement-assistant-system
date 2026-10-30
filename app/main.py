@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
+from app.agent.loop import seed_prompts
 from app.api import admin, auth, chat, expenses, knowledge
 from app.core.config import settings
 from app.core.db import init_db
@@ -13,8 +14,11 @@ from app.core.db import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """启动时建表（开发期 create_all，正式版切 Alembic）"""
+    """启动时建表（开发期 create_all，正式版切 Alembic）+ 播种默认提示词模板"""
     await init_db()
+    from app.core.db import AsyncSessionLocal
+    async with AsyncSessionLocal() as db:
+        await seed_prompts(db)
     yield
 
 

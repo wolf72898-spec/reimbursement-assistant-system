@@ -3,4 +3,5 @@
 from app.models.chat import ChatMessage, ChatSession  # noqa: F401
 from app.models.expense import ExpenseDraft  # noqa: F401
 from app.models.policy import PolicyChunk, PolicyDocument  # noqa: F401
+from app.models.prompt import PromptTemplate  # noqa: F401
 from app.models.user import User  # noqa: F401
