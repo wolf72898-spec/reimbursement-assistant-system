@@ -155,11 +155,18 @@ tests/                       冒烟测试 8 条 + 评测用例 30 条
 | 💰 [报价单](docs/construction-change/05-报价单.xlsx) | 首期试点 3 个月打包价 ¥286,000，9 项明细，公式自动合计（Excel） |
 | 📐 [设计方案](docs/construction-change/06-设计方案.docx) | 四层架构 · 五大模块 · AI 红线 · 九阶段实施计划（Word） |
 
-**② 流程图**
+**② 流程图对比**
 
-| 现状（8 步人工流程，6 处痛点） | 数智化转型后（8 步协同流程，6 项收益） |
-| --- | --- |
-| ![现状流程](docs/construction-change/03-现状流程图.png) | ![转型后流程](docs/construction-change/04-数智化转型后流程图.png) |
+<div align="center">
+
+| 现状 · 8 步人工流程（6 处痛点） | 数智化转型后 · 8 步协同流程（6 项收益） |
+| :---: | :---: |
+| <img src="docs/construction-change/03-current-process-flow.png" width="420" alt="现状流程图"/> | <img src="docs/construction-change/04-digitized-process-flow.png" width="420" alt="转型后流程图"/> |
+| 人工驱动 · 版本失控 · 事后补救 | 数据驱动 + AI 辅助 + 人工把关 |
+
+</div>
+
+> 完整大图：[现状流程图](docs/construction-change/03-current-process-flow.png) · [转型后流程图](docs/construction-change/04-digitized-process-flow.png)
 
 **③ 研发文档**
 
