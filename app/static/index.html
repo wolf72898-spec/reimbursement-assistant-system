@@ -34,6 +34,13 @@
   .btn-primary{width:100%;height:44px;border:0;border-radius:9px;background:#286451;
     color:#fff;font-size:15px;font-weight:600;letter-spacing:1px}
   .btn-primary:hover{filter:brightness(1.08)}
+  .btn-demo{width:100%;height:40px;margin-top:10px;border:1px dashed #9dbfae;border-radius:9px;
+    background:#f2f8f5;color:#286451;font-size:13px;font-weight:600;display:flex;align-items:center;
+    justify-content:center;gap:7px;transition:.15s}
+  .btn-demo:hover{background:#e6f2ec;border-style:solid}
+  .btn-demo:disabled{opacity:.6;pointer-events:none}
+  .btn-demo .spin{animation:demo-spin .8s linear infinite}
+  @keyframes demo-spin{to{transform:rotate(360deg)}}
   .login-switch{text-align:center;margin-top:16px;font-size:12.5px;color:var(--muted)}
   .login-switch a{color:var(--navy2);font-weight:600;cursor:pointer;text-decoration:none}
   .login-hint{margin-top:14px;padding:10px 12px;border-radius:9px;background:var(--pale);color:#4d6b5f;font-size:12px;line-height:1.7}
@@ -250,8 +257,12 @@
     <div class="field"><input id="li-pass" type="password" placeholder="密码（至少 6 位）" autocomplete="current-password"></div>
     <div class="field" id="deptField" style="display:none"><input id="li-dept" placeholder="部门（选填，注册时有效）"></div>
     <button class="btn-primary" id="btnAuth">登 录</button>
+    <button class="btn-demo" id="btnDemo">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+      一键体验（演示账号登录）
+    </button>
     <div class="login-switch"><span id="switchTip">没有账号？</span> <a id="btnSwitch">立即注册</a></div>
-    <div class="login-hint" id="loginHint">演示账号：zhangsan / abc123456（管理员）</div>
+    <div class="login-hint" id="loginHint">点「一键体验」直接进入演示环境；或手动登录：zhangsan / abc123456（管理员）</div>
   </div>
 </div>
 
@@ -374,10 +385,21 @@ function setMode(mode) {
   $("#switchTip").textContent = reg ? "已有账号？" : "没有账号？";
   $("#btnSwitch").textContent = reg ? "去登录" : "立即注册";
   $("#loginHint").textContent = reg
-    ? "提示：首个注册用户自动成为管理员；演示可直接用 zhangsan 登录。"
+    ? "提示：首个注册用户自动成为管理员；也可点「一键体验」直接用演示账号进入。"
     : "演示账号：zhangsan / abc123456（管理员）";
 }
 $("#btnSwitch").onclick = () => setMode(AUTH_MODE === "login" ? "register" : "login");
+
+async function loginAs(username, password) {
+  const d = await api("/api/auth/login", {method: "POST", body: JSON.stringify({username, password})});
+  TOKEN = d.access_token; ROLE = d.role; USER = username;
+  const me = await api("/api/auth/me");
+  localStorage.setItem("ra_token", TOKEN);
+  localStorage.setItem("ra_role", ROLE);
+  localStorage.setItem("ra_username", USER);
+  localStorage.setItem("ra_uid", me.id);
+  enterApp();
+}
 
 $("#btnAuth").onclick = async () => {
   const username = $("#li-user").value.trim();
@@ -387,15 +409,23 @@ $("#btnAuth").onclick = async () => {
     if (AUTH_MODE === "register") {
       await api("/api/auth/register", {method: "POST", body: JSON.stringify({username, password, department: $("#li-dept").value.trim()})});
     }
-    const d = await api("/api/auth/login", {method: "POST", body: JSON.stringify({username, password})});
-    TOKEN = d.access_token; ROLE = d.role; USER = username;
-    const me = await api("/api/auth/me");
-    localStorage.setItem("ra_token", TOKEN);
-    localStorage.setItem("ra_role", ROLE);
-    localStorage.setItem("ra_username", USER);
-    localStorage.setItem("ra_uid", me.id);
-    enterApp();
+    await loginAs(username, password);
   } catch (e) { toast(e.message); }
+};
+
+$("#btnDemo").onclick = async () => {
+  const btn = $("#btnDemo");
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg> 正在进入演示…`;
+  try {
+    await loginAs("zhangsan", "abc123456");
+    toast("已使用演示账号（管理员）登录");
+  } catch (e) {
+    toast("演示登录失败：" + e.message + "，请手动输入 zhangsan / abc123456");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg> 一键体验（演示账号登录）`;
+  }
 };
 
 function logout() {
