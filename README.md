@@ -161,7 +161,7 @@ tests/                       冒烟测试 8 条 + 评测用例 30 条
 
 | 现状 · 8 步人工流程（6 处痛点） | 数智化转型后 · 8 步协同流程（6 项收益） |
 | :---: | :---: |
-| <img src="docs/construction-change/03-current-process-flow.png" width="420" alt="现状流程图"/> | <img src="docs/construction-change/04-digitized-process-flow.png" width="420" alt="转型后流程图"/> |
+| <img src="docs/construction-change/03-current-process-flow.png?raw=1" width="420" alt="现状流程图"/> | <img src="docs/construction-change/04-digitized-process-flow.png?raw=1" width="420" alt="转型后流程图"/> |
 | 人工驱动 · 版本失控 · 事后补救 | 数据驱动 + AI 辅助 + 人工把关 |
 
 </div>
