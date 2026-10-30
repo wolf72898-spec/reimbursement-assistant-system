@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""认证路由：注册 / 登录。首个注册用户自动成为管理员。"""
+"""认证路由：注册 / 登录 / 当前用户信息。首个注册用户自动成为管理员。"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_db
+from app.core.deps import get_db, get_current_user
 from app.core.security import create_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas import LoginIn, RegisterIn, TokenOut, UserOut
@@ -41,3 +41,9 @@ async def login(body: LoginIn, db: AsyncSession = Depends(get_db)):
     if user is None or not verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")
     return TokenOut(access_token=create_token(user.id, user.role), role=user.role)
+
+
+@router.get("/me", response_model=UserOut)
+async def me(current_user: User = Depends(get_current_user)):
+    """返回当前登录用户信息（前端登录后调用）"""
+    return current_user
