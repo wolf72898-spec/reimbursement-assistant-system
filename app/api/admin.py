@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.agent.loop import _ALLOWED_PROMPTS, _PROMPT_DIR, load_prompt_text
 from app.agent.registry import _risk_hits
 from app.core.deps import get_db, require_admin
+from app.models.agent import AgentStepLog
 from app.models.chat import ChatMessage, ChatSession
 from app.models.expense import ExpenseDraft
 from app.models.prompt import PromptTemplate
@@ -118,6 +119,35 @@ async def reset_prompt(
     obj.is_default = True
     await db.commit()
     return {"ok": True, "name": name, "message": "已恢复默认模板"}
+
+
+# ============================================================
+# Agent 决策日志（提示词7）：每轮工具调用记录，供阶段5分析
+# ============================================================
+
+
+@router.get("/traces")
+async def agent_traces(
+    session_id: int | None = None,
+    limit: int = 100,
+    user=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Agent 决策日志：工具名 / 参数 / 耗时 / 结果摘要 / 轮次 / 状态"""
+    limit = min(max(limit, 1), 500)
+    q = select(AgentStepLog).order_by(AgentStepLog.id.desc()).limit(limit)
+    if session_id is not None:
+        q = q.where(AgentStepLog.session_id == session_id)
+    rows = (await db.execute(q)).scalars().all()
+    return [
+        {
+            "id": s.id, "session_id": s.session_id, "round_no": s.round_no,
+            "tool_name": s.tool_name, "arguments": s.arguments,
+            "elapsed_ms": s.elapsed_ms, "result_summary": s.result_summary,
+            "status": s.status, "created_at": str(s.created_at),
+        }
+        for s in rows
+    ]
 
 
 # ============================================================

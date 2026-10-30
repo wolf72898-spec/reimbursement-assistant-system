@@ -20,7 +20,7 @@ from app.models.chat import ChatMessage, ChatSession
 from app.models.expense import ExpenseDraft
 from app.models.user import User
 from app.rag.retriever import hybrid_search
-from app.schemas import MessageIn, MessageOut, SessionOut, StreamIn
+from app.schemas import ConfirmIn, MessageIn, MessageOut, SessionOut, StreamIn
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -194,9 +194,9 @@ async def stream_message(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    SSE 流式对话主入口（Agent 模式，提示词6）。
-    LLM 自主决策调用工具，事件序列（动态）：
-    tool_call → tool_result → sources → delta* → expense → done
+    SSE 流式对话主入口（AgentHarness 编排，提示词7）。
+    事件序列（动态）：tool_call → tool_result → confirm_request / sources →
+    delta* → expense → done。
     HTTP 级错误（401/403/404/422/503）在流开始前直接返回 JSON。
     """
     history = await _load_context(db, user, body.session_id, body.question)
@@ -208,6 +208,33 @@ async def stream_message(
                 yield _sse(event, data)
         except Exception as e:  # 流内错误以 error 事件推送（响应头已发出）
             yield _sse("error", {"code": 500, "message": f"服务异常：{e}"})
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.post("/confirm", responses={503: {"description": "LLM 未配置"}})
+async def confirm_action(
+    body: ConfirmIn,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    员工对 create_draft 中断的确认/取消（人机在环，提示词7）。
+    approved=true：真正建单并让智能体继续；false：回填"用户拒绝"由模型善后。
+    返回 SSE 流（继续推 delta/tool_call/done 等事件）。
+    """
+    async def event_gen():
+        try:
+            from app.agent.harness import AgentHarness
+            harness = AgentHarness(db, user, body.session_id)
+            async for event, data in harness.resume(body.action_id, body.approved):
+                yield _sse(event, data)
+        except Exception as e:
+            yield _sse("error", {"code": 500, "message": f"确认处理异常：{e}"})
 
     return StreamingResponse(
         event_gen(),

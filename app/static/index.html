@@ -599,25 +599,8 @@ async function sendMsg() {
       bubble.innerHTML = `<span class="err-bubble">⚠ ${esc(typeof d.detail === "string" ? d.detail : "请求失败 " + resp.status)}</span>`;
       clearInterval(typer); $("sendBtn").disabled = false; return;
     }
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = "";
-    while (true) {
-      const {value, done: rd} = await reader.read();
-      if (rd) break;
-      buf += decoder.decode(value, {stream: true});
-      const frames = buf.split("\n\n");
-      buf = frames.pop();
-      for (const frame of frames) {
-        let ev = "message", data = "";
-        for (const line of frame.split("\n")) {
-          if (line.startsWith("event: ")) ev = line.slice(7);
-          else if (line.startsWith("data: ")) data += line.slice(6);
-        }
-        if (!data) continue;
-        handleEvent(ev, JSON.parse(data), {trace, queue, bubble, cursor});
-      }
-    }
+    bubble._ui = {trace, queue, bubble, cursor};
+    await pumpStream(resp, bubble._ui);
   } catch (e) {
     bubble.innerHTML = `<span class="err-bubble">⚠ 连接中断：${esc(e.message)}</span>`;
   }
@@ -625,6 +608,54 @@ async function sendMsg() {
   const c = bubble.querySelector(".cursor"); if (c) c.remove();
   $("sendBtn").disabled = false;
   refreshSessions();
+}
+
+/* SSE 读取泵：逐帧解析事件并分发给 handleEvent（对话流与确认流共用） */
+async function pumpStream(resp, ui) {
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const {value, done: rd} = await reader.read();
+    if (rd) break;
+    buf += decoder.decode(value, {stream: true});
+    const frames = buf.split("\n\n");
+    buf = frames.pop();
+    for (const frame of frames) {
+      let ev = "message", data = "";
+      for (const line of frame.split("\n")) {
+        if (line.startsWith("event: ")) ev = line.slice(7);
+        else if (line.startsWith("data: ")) data += line.slice(6);
+      }
+      if (!data) continue;
+      handleEvent(ev, JSON.parse(data), ui);
+    }
+  }
+}
+
+/* 员工对 create_draft 的确认/取消（人机在环）：确认后继续接收智能体后续输出 */
+async function resolveConfirm(actionId, approved, btnBox) {
+  btnBox.querySelectorAll("button").forEach(b => { b.disabled = true; });
+  const ui = btnBox.closest(".bubble")._ui;
+  const note = document.createElement("div");
+  note.style.cssText = "font-size:12px;color:var(--ink-2);margin-top:6px";
+  note.textContent = approved ? "✅ 已确认，智能体继续处理…" : "❌ 已取消建单";
+  btnBox.appendChild(note);
+  try {
+    const resp = await fetch("/api/chat/confirm", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN},
+      body: JSON.stringify({session_id: SESSION_ID, action_id: actionId, approved}),
+    });
+    if (!resp.ok) {
+      const d = await resp.json().catch(() => ({}));
+      toast(typeof d.detail === "string" ? d.detail : "确认失败");
+      btnBox.querySelectorAll("button").forEach(b => b.disabled = false);
+      return;
+    }
+    await pumpStream(resp, ui);
+  } catch (e) { toast("连接中断：" + e.message); }
+  loadExpenses();
 }
 
 /* SSE 事件分发：工具过程 / 来源 / 正文 / 报销卡片 / 错误 */
@@ -663,6 +694,29 @@ function handleEvent(ev, d, ui) {
       (miss ? `<div style="color:var(--amber)">待补充：${esc(d.missing_fields.join("、"))}（直接回复即可补齐）</div>`
             : `<div style="color:var(--mint)">可在「我的报销单」中提交</div>`);
     ui.bubble.insertBefore(card, ui.bubble.querySelector(".cursor"));
+  }
+  else if (ev === "confirm_request") {
+    /* HITL 强制确认卡片：草稿内容 + 确认/取消按钮 */
+    const dft = d.draft || {};
+    const card = document.createElement("div");
+    card.className = "expense-card";
+    card.style.borderColor = "var(--brand)";
+    card.innerHTML =
+      `<div class="card-head">🧾 请确认报销单内容
+        <span class="pill amber">等待确认</span></div>
+      <div>类型：<b>${esc(dft.expense_type || "—")}</b>　金额：<span class="amt">${Number(dft.amount || 0).toFixed(2)}</span>元</div>
+      <div>日期：${esc(dft.expense_date || "—")}　明细：${esc(dft.details || "—")}</div>
+      <div style="margin-top:8px; display:flex; gap:8px;"></div>`;
+    const btnRow = card.querySelector("div:last-child");
+    const okBtn = document.createElement("button");
+    okBtn.className = "btn primary small"; okBtn.textContent = "✓ 确认创建";
+    okBtn.onclick = () => resolveConfirm(d.action_id, true, card);
+    const noBtn = document.createElement("button");
+    noBtn.className = "btn ghost small"; noBtn.textContent = "✕ 取消";
+    noBtn.onclick = () => resolveConfirm(d.action_id, false, card);
+    btnRow.append(okBtn, noBtn);
+    ui.bubble.insertBefore(card, ui.bubble.querySelector(".cursor"));
+    $("chatBody").scrollTop = $("chatBody").scrollHeight;
   }
   else if (ev === "error") {
     ui.bubble.innerHTML = `<span class="err-bubble">⚠ ${esc(d.message)}</span>`;

@@ -54,6 +54,13 @@ class StreamIn(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
 
 
+class ConfirmIn(BaseModel):
+    """create_draft 人机确认请求（提示词7 HITL）"""
+    session_id: int
+    action_id: str
+    approved: bool
+
+
 class MessageOut(BaseModel):
     id: int
     role: str
