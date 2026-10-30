@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from app.api import admin, auth, chat, expenses, knowledge
 from app.core.config import settings
@@ -27,6 +28,12 @@ app.include_router(chat.router)
 app.include_router(expenses.router)
 app.include_router(knowledge.router)
 app.include_router(admin.router)
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """根路径自动跳转到 API 交互文档"""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health", tags=["meta"])
