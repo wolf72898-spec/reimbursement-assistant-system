@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.expense import ExpenseDraft
@@ -133,6 +133,51 @@ TOOL_SCHEMAS = [
                 "type": "object",
                 "properties": {"draft_id": {"type": "integer"}},
                 "required": ["draft_id"],
+            },
+        },
+    },
+    # ---- 工程变更与签证领域工具 ----
+    {
+        "type": "function",
+        "function": {
+            "name": "query_changes",
+            "description": "查询工程变更台账：按状态或关键词筛选变更单（编号/标题/部位），返回状态、版本、金额影响等。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string", "description": "按状态筛选：交底中/待签证/待核定/待业主确认/已确认/已驳回/已归档（可选）"},
+                    "keyword": {"type": "string", "description": "关键词，匹配编号、标题或部位（可选）"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_change_detail",
+            "description": "查询单个变更单详情：版本记录、交底签收情况、关联签证单。回答「某变更现在什么状态」必须用本工具。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "change_code": {"type": "string", "description": "变更单编号，如 CH-2026-0001（与 change_id 二选一）"},
+                    "change_id": {"type": "integer", "description": "变更单 id（可选）"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "draft_visa",
+            "description": "为已完成交底的变更起草签证单草稿（状态=待核定）。AI 只起草，金额必须经造价核定与业主确认后生效。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "change_code": {"type": "string", "description": "变更单编号，如 CH-2026-0004"},
+                    "amount": {"type": "number", "description": "签证金额（元）"},
+                    "quantity_desc": {"type": "string", "description": "工程量与计算式说明"},
+                },
+                "required": ["change_code", "amount"],
             },
         },
     },
@@ -413,6 +458,124 @@ async def _exec_submit_draft(args: dict, ctx: AgentContext) -> dict:
     return {"draft_id": draft.id, "status": "submitted", "message": "报销单已提交，等待审批"}
 
 
+# ============================================================
+# 工程变更与签证领域工具执行器
+# ============================================================
+
+
+async def _find_change(ctx: AgentContext, args: dict):
+    """按 change_id 或 change_code 定位变更单"""
+    from app.models.change import ChangeOrder
+
+    if args.get("change_id"):
+        return await ctx.db.get(ChangeOrder, int(args["change_id"]))
+    code = (args.get("change_code") or "").strip()
+    if code:
+        return await ctx.db.scalar(
+            select(ChangeOrder).where(ChangeOrder.code == code)
+        )
+    return None
+
+
+async def _exec_query_changes(args: dict, ctx: AgentContext) -> dict:
+    from app.models.change import ChangeOrder
+
+    stmt = select(ChangeOrder).order_by(ChangeOrder.updated_at.desc()).limit(10)
+    if args.get("status"):
+        stmt = stmt.where(ChangeOrder.status == args["status"])
+    rows = (await ctx.db.scalars(stmt)).all()
+    kw = (args.get("keyword") or "").strip()
+    if kw:
+        rows = [r for r in rows if kw in r.code or kw in r.title or kw in (r.location or "")]
+    if not rows:
+        return {"found": False, "message": "未找到符合条件的变更单"}
+    return {
+        "found": True,
+        "changes": [
+            {
+                "code": r.code, "title": r.title, "status": r.status,
+                "category": r.category, "location": r.location,
+                "version": f"V{r.current_version}", "amount": r.amount_impact,
+                "owner": r.owner_role,
+            }
+            for r in rows
+        ],
+    }
+
+
+async def _exec_get_change_detail(args: dict, ctx: AgentContext) -> dict:
+    from app.models.change import Briefing, ChangeVersion, VisaOrder
+
+    c = await _find_change(ctx, args)
+    if c is None:
+        return {"error": "NOT_FOUND", "message": "变更单不存在，请核对编号（如 CH-2026-0001）"}
+    versions = (
+        await ctx.db.scalars(
+            select(ChangeVersion).where(ChangeVersion.change_id == c.id).order_by(ChangeVersion.version_no)
+        )
+    ).all()
+    briefings = (await ctx.db.scalars(select(Briefing).where(Briefing.change_id == c.id))).all()
+    visas = (await ctx.db.scalars(select(VisaOrder).where(VisaOrder.change_id == c.id))).all()
+    cur_brief = [b for b in briefings if b.version_no == c.current_version]
+    return {
+        "found": True,
+        "change": {
+            "code": c.code, "title": c.title, "status": c.status,
+            "category": c.category, "location": c.location,
+            "current_version": f"V{c.current_version}",
+            "amount_impact": c.amount_impact, "owner": c.owner_role,
+        },
+        "versions": [
+            {"no": f"V{v.version_no}", "valid": v.is_valid, "summary": v.summary[:60]}
+            for v in versions
+        ],
+        "briefings": [
+            {"role": b.role, "status": b.status, "assignee": b.assignee} for b in cur_brief
+        ],
+        "visas": [
+            {"code": v.code, "amount": v.amount, "status": v.status} for v in visas
+        ],
+    }
+
+
+async def _exec_draft_visa(args: dict, ctx: AgentContext) -> dict:
+    from app.models.change import ChangeOrder, VisaOrder
+
+    c = await _find_change(ctx, args)
+    if c is None:
+        return {"error": "NOT_FOUND", "message": "变更单不存在，请核对编号"}
+    if c.status not in ("待签证", "待核定", "待业主确认", "已驳回"):
+        return {
+            "error": "STATUS_INVALID",
+            "message": f"变更「{c.code}」当前状态为「{c.status}」，需完成交底（全部签收进入待签证）后才能起草签证",
+        }
+    amount = float(args.get("amount", 0) or 0)
+    if amount <= 0:
+        return {"error": "AMOUNT_INVALID", "message": "签证金额必须大于 0，请向用户确认金额后再起草"}
+    count = await ctx.db.scalar(select(func.count()).select_from(VisaOrder))
+    code = f"VZ-{datetime.now().year}-{(count or 0) + 1:04d}"
+    visa = VisaOrder(
+        change_id=c.id, code=code,
+        title=f"{c.title} · 签证单",
+        amount=amount,
+        quantity_desc=args.get("quantity_desc", ""),
+        status="待核定",
+        source_version=c.current_version,
+        created_by=ctx.user.username,
+        drafted_by_ai=True,
+    )
+    db_visa = visa
+    ctx.db.add(db_visa)
+    c.status = "待核定"
+    await ctx.db.commit()
+    ctx.drafts.append(db_visa.id)
+    return {
+        "visa_id": db_visa.id, "code": code, "amount": amount,
+        "status": "待核定",
+        "message": f"签证单 {code} 已起草（来源 {c.code} V{c.current_version}），等待造价核定与业主确认",
+    }
+
+
 EXECUTORS = {
     "search_policy": _exec_search_policy,
     "get_expense_standard": _exec_get_expense_standard,
@@ -421,6 +584,9 @@ EXECUTORS = {
     "update_draft": _exec_update_draft,
     "get_my_drafts": _exec_get_my_drafts,
     "submit_draft": _exec_submit_draft,
+    "query_changes": _exec_query_changes,
+    "get_change_detail": _exec_get_change_detail,
+    "draft_visa": _exec_draft_visa,
 }
 
 
@@ -442,4 +608,13 @@ def tool_summary(name: str, result: dict) -> str:
         return f"共 {len(result.get('drafts', []))} 条草稿"
     if name == "submit_draft":
         return result.get("message", "提交结果未知")
+    if name == "query_changes":
+        return f"查到 {len(result.get('changes', []))} 条变更" if result.get("found") else "未找到变更单"
+    if name == "get_change_detail":
+        if result.get("found"):
+            ch = result.get("change", {})
+            return f"{ch.get('code')} 状态：{ch.get('status')}（当前 {ch.get('current_version')}）"
+        return result.get("message", "未找到变更单")
+    if name == "draft_visa":
+        return result.get("message", "签证起草被拒绝")
     return json.dumps(result, ensure_ascii=False)[:80]

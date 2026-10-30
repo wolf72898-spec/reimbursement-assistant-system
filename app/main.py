@@ -7,18 +7,20 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
 from app.agent.loop import seed_prompts
-from app.api import admin, auth, chat, expenses, knowledge
+from app.api import admin, auth, chat, construction, expenses, knowledge
 from app.core.config import settings
 from app.core.db import init_db
+from app.core.seed_change import seed_changes
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """启动时建表（开发期 create_all，正式版切 Alembic）+ 播种默认提示词模板"""
+    """启动时建表（开发期 create_all，正式版切 Alembic）+ 播种提示词模板与演示数据"""
     await init_db()
     from app.core.db import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
         await seed_prompts(db)
+        await seed_changes(db)
     yield
 
 
@@ -29,6 +31,7 @@ app = FastAPI(
 )
 
 app.include_router(auth.router)
+app.include_router(construction.router)
 app.include_router(chat.router)
 app.include_router(expenses.router)
 app.include_router(knowledge.router)

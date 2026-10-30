@@ -18,7 +18,7 @@ async def init_db() -> None:
     建表（开发期用 create_all；正式版切换 Alembic 迁移管理）。
     """
     # 导入所有模型确保元数据注册完整
-    from app.models import chat, expense, policy, user  # noqa: F401
+    from app.models import change, chat, expense, policy, user  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

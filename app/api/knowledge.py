@@ -102,10 +102,12 @@ async def list_documents(
     rows = await db.execute(
         select(PolicyDocument).order_by(PolicyDocument.id.desc())
     )
-    chunk_counts = dict(await db.execute(
-        select(PolicyChunk.document_id, func.count())
-        .group_by(PolicyChunk.document_id)
-    ))
+    chunk_counts = dict((
+        await db.execute(
+            select(PolicyChunk.document_id, func.count())
+            .group_by(PolicyChunk.document_id)
+        )
+    ).all())
     return [
         {
             "id": d.id, "title": d.title, "doc_type": d.doc_type,
