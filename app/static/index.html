@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>报销助手智能体系统</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f0f2f5; height: 100vh; }
+  .hidden { display: none !important; }
+
+  /* ===== 登录页 ===== */
+  #loginPage { display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .login-box { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.08); width: 360px; }
+  .login-box h1 { font-size: 22px; text-align: center; margin-bottom: 6px; color: #1a1a1a; }
+  .login-box p.sub { text-align: center; color: #888; font-size: 13px; margin-bottom: 24px; }
+  .login-box input { width: 100%; padding: 11px 12px; margin-bottom: 14px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; }
+  .login-box input:focus { outline: none; border-color: #4a7cf7; }
+  .btn { width: 100%; padding: 11px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; background: #4a7cf7; color: #fff; }
+  .btn:hover { background: #3a6ce7; }
+  .btn.ghost { background: #fff; color: #4a7cf7; border: 1px solid #4a7cf7; margin-top: 10px; }
+  #loginMsg { color: #e04040; font-size: 13px; text-align: center; min-height: 18px; margin-bottom: 8px; }
+
+  /* ===== 主界面 ===== */
+  #mainPage { display: flex; height: 100vh; }
+  .sidebar { width: 230px; background: #1f2b3e; color: #cfd8e6; display: flex; flex-direction: column; }
+  .sidebar .logo { padding: 20px 16px; font-size: 16px; font-weight: bold; color: #fff; border-bottom: 1px solid #2c3b53; }
+  .sidebar .user-info { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid #2c3b53; }
+  .sidebar .user-info .role-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; font-size: 11px; background: #4a7cf7; color: #fff; }
+  .sidebar button.nav { background: none; border: none; color: #cfd8e6; text-align: left; padding: 13px 16px; font-size: 14px; cursor: pointer; }
+  .sidebar button.nav:hover { background: #2c3b53; }
+  .sidebar button.nav.active { background: #4a7cf7; color: #fff; }
+  .sidebar .new-chat { margin: 14px 16px 0; padding: 10px; background: #4a7cf7; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .sidebar .spacer { flex: 1; }
+  .sidebar .logout { margin: 16px; padding: 9px; background: none; border: 1px solid #4a5b75; color: #9fb0c8; border-radius: 8px; cursor: pointer; font-size: 13px; }
+
+  .content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  /* 聊天区 */
+  #chatPanel { flex: 1; display: flex; flex-direction: column; }
+  .chat-head { padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8; font-size: 15px; font-weight: bold; }
+  .chat-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .msg { max-width: 72%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .msg.user { align-self: flex-end; background: #4a7cf7; color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot { align-self: flex-start; background: #fff; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .chat-input { display: flex; gap: 10px; padding: 16px 24px; background: #fff; border-top: 1px solid #e8e8e8; }
+  .chat-input input { flex: 1; padding: 12px 14px; border: 1px solid #d9d9d9; border-radius: 10px; font-size: 14px; }
+  .chat-input input:focus { outline: none; border-color: #4a7cf7; }
+  .chat-input button { padding: 12px 26px; background: #4a7cf7; color: #fff; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
+  .chat-input button:disabled { background: #a8c0f5; cursor: not-allowed; }
+  .quick-asks { display: flex; gap: 8px; padding: 0 24px 12px; background: #fff; flex-wrap: wrap; }
+  .quick-asks button { padding: 6px 12px; font-size: 12px; background: #f0f4ff; color: #4a7cf7; border: 1px solid #c9d9fb; border-radius: 14px; cursor: pointer; }
+
+  /* 表格面板 */
+  .panel { flex: 1; overflow-y: auto; padding: 24px; }
+  .panel h2 { font-size: 18px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  th { background: #f7f9fc; color: #666; }
+  .tag { padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+  .tag.draft { background: #fff7e6; color: #d48806; }
+  .tag.submitted { background: #e6f7ff; color: #1677ff; }
+  .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 16px; }
+  .stat-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .stat { flex: 1; background: #fff; border-radius: 10px; padding: 18px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  .stat .num { font-size: 26px; font-weight: bold; color: #4a7cf7; }
+  .stat .label { font-size: 13px; color: #888; margin-top: 4px; }
+  #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ===== 登录 / 注册 ===== -->
+<div id="loginPage">
+  <div class="login-box">
+    <h1>报销助手智能体系统</h1>
+    <p class="sub">问制度 · 聊着天就把报销单填了</p>
+    <input id="username" placeholder="用户名（首次注册即管理员）">
+    <input id="password" type="password" placeholder="密码（至少 6 位）">
+    <input id="department" placeholder="部门（选填，如：市场部）">
+    <div id="loginMsg"></div>
+    <button class="btn" onclick="doLogin()">登 录</button>
+    <button class="btn ghost" onclick="doRegister()">注册新账号</button>
+  </div>
+</div>
+
+<!-- ===== 主界面 ===== -->
+<div id="mainPage" class="hidden">
+  <div class="sidebar">
+    <div class="logo">💬 报销助手</div>
+    <div class="user-info">你好，<b id="whoami"></b><span class="role-tag" id="roleTag"></span></div>
+    <button class="new-chat" onclick="newChat()">＋ 发起新对话</button>
+    <button class="nav active" id="navChat" onclick="switchTab('chat')">🤖 智能体对话</button>
+    <button class="nav" id="navExp" onclick="switchTab('exp')">📋 我的报销单</button>
+    <button class="nav hidden" id="navAdmin" onclick="switchTab('admin')">⚙️ 管理员面板</button>
+    <div class="spacer"></div>
+    <button class="logout" onclick="location.reload()">退出登录</button>
+  </div>
+
+  <div class="content">
+    <!-- 对话 -->
+    <div id="chatPanel">
+      <div class="chat-head">智能体对话 · 制度问答与报销填报</div>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="quick-asks">
+        <button onclick="quickAsk(this.textContent)">去北京出差住宿标准是多少？</button>
+        <button onclick="quickAsk(this.textContent)">加班餐费能报多少？</button>
+        <button onclick="quickAsk(this.textContent)">我要报销昨天出差的打车费 38 元和高铁二等座 553 元</button>
+      </div>
+      <div class="chat-input">
+        <input id="chatInput" placeholder="输入问题或报销需求，回车发送…" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button id="sendBtn" onclick="sendMsg()">发送</button>
+      </div>
+    </div>
+
+    <!-- 我的报销单 -->
+    <div id="expPanel" class="panel hidden">
+      <h2>我的报销单</h2>
+      <table id="expTable">
+        <thead><tr><th>编号</th><th>类型</th><th>金额（元）</th><th>明细</th><th>待补充</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- 管理员 -->
+    <div id="adminPanel" class="panel hidden">
+      <h2>管理员面板</h2>
+      <div class="stat-row" id="statRow"></div>
+      <div class="card">
+        <b>上传报销制度文档</b>
+        <p style="color:#888;font-size:13px;margin:8px 0 12px;">支持 Markdown / TXT，同名文档重复上传自动升版本</p>
+        <input type="file" id="docFile" accept=".md,.txt" style="margin-right:12px;">
+        <select id="docType" style="padding:7px;border:1px solid #d9d9d9;border-radius:6px;">
+          <option>差旅标准</option><option>发票规则</option><option>审批流程</option><option>通用</option>
+        </select>
+        <button class="btn" style="width:auto;padding:8px 22px;margin-left:12px;" onclick="uploadDoc()">上传并向量化</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let TOKEN = "", ROLE = "", SESSION_ID = null;
+
+function toast(t) { const el = document.getElementById("toast"); el.textContent = t; el.style.display = "block"; setTimeout(() => el.style.display = "none", 2500); }
+async function api(path, opts = {}) {
+  opts.headers = Object.assign({"Content-Type": "application/json"}, TOKEN ? {"Authorization": "Bearer " + TOKEN} : {}, opts.headers || {});
+  const r = await fetch(path, opts);
+  if (r.status === 401) { location.reload(); throw new Error("登录过期"); }
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || ("请求失败 " + r.status));
+  return data;
+}
+
+/* ---- 登录注册 ---- */
+async function doRegister() {
+  const u = username.value.trim(), p = password.value;
+  if (!u || p.length < 6) return loginMsg.textContent = "请填写用户名，密码至少 6 位";
+  try {
+    await api("/api/auth/register", {method: "POST", body: JSON.stringify({username: u, password: p, department: department.value})});
+    loginMsg.style.color = "#52c41a"; loginMsg.textContent = "注册成功，正在自动登录…";
+    setTimeout(doLogin, 500);
+  } catch (e) { loginMsg.style.color = "#e04040"; loginMsg.textContent = e.message; }
+}
+async function doLogin() {
+  const u = username.value.trim(), p = password.value;
+  if (!u || !p) return loginMsg.textContent = "请填写用户名和密码";
+  try {
+    const d = await api("/api/auth/login", {method: "POST", body: JSON.stringify({username: u, password: p})});
+    TOKEN = d.access_token; ROLE = d.role;
+    sessionStorage.setItem("tk", TOKEN);
+    enterMain(u);
+  } catch (e) { loginMsg.style.color = "#e04040"; loginMsg.textContent = e.message; }
+}
+function enterMain(u) {
+  loginPage.classList.add("hidden"); mainPage.classList.remove("hidden");
+  whoami.textContent = u; roleTag.textContent = ROLE === "admin" ? "管理员" : "员工";
+  if (ROLE === "admin") navAdmin.classList.remove("hidden");
+  newChat();
+  addBot("你好！我是你的报销助手 🤖\n可以问我报销制度（如住宿标准、发票要求），也可以直接告诉我要报销什么，我帮你填单。\n试试下面的问题，或直接输入。");
+}
+
+/* ---- 对话 ---- */
+function switchTab(t) {
+  chatPanel.classList.toggle("hidden", t !== "chat");
+  expPanel.classList.toggle("hidden", t !== "exp");
+  adminPanel.classList.toggle("hidden", t !== "admin");
+  navChat.classList.toggle("active", t === "chat");
+  navExp.classList.toggle("active", t === "exp");
+  navAdmin.classList.toggle("active", t === "admin");
+  if (t === "exp") loadExpenses();
+  if (t === "admin") loadAdmin();
+}
+function addMsg(cls, text) {
+  const div = document.createElement("div"); div.className = "msg " + cls; div.textContent = text;
+  chatBody.appendChild(div); chatBody.scrollTop = chatBody.scrollHeight; return div;
+}
+const addBot = t => addMsg("bot", t), addUser = t => addMsg("user", t);
+async function newChat() {
+  if (!TOKEN) return;
+  const s = await api("/api/chat/sessions", {method: "POST"});
+  SESSION_ID = s.id; chatBody.innerHTML = "";
+}
+async function quickAsk(q) { chatInput.value = q; sendMsg(); }
+async function sendMsg() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  addUser(text); chatInput.value = "";
+  sendBtn.disabled = true;
+  const tip = addBot("思考中…");
+  try {
+    const d = await api(`/api/chat/sessions/${SESSION_ID}/messages`, {method: "POST", body: JSON.stringify({content: text})});
+    tip.textContent = d.content;
+  } catch (e) { tip.textContent = "出错了：" + e.message; }
+  sendBtn.disabled = false; chatInput.focus();
+}
+
+/* ---- 我的报销单 ---- */
+async function loadExpenses() {
+  const list = await api("/api/expenses/my");
+  const tb = expTable.querySelector("tbody"); tb.innerHTML = "";
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;padding:30px;">还没有报销单，去对话页告诉助手你要报销什么吧</td></tr>'; return; }
+  list.forEach(d => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>#${d.id}</td><td>${d.expense_type}</td><td>${d.total_amount.toFixed(2)}</td>
+      <td>${(d.fields && (d.fields.details || d.fields.reason)) || "-"}</td>
+      <td>${(d.missing_fields || []).join("、") || "-"}</td>
+      <td><span class="tag ${d.status}">${d.status === "draft" ? "草稿" : "已提交"}</span></td>
+      <td>${d.status === "draft" ? '<button class="btn" style="width:auto;padding:5px 14px;font-size:12px;" onclick="submitExp(' + d.id + ')">提交</button>' : "-"}</td>`;
+    tb.appendChild(tr);
+  });
+}
+async function submitExp(id) { await api(`/api/expenses/${id}/submit`, {method: "POST"}); toast("已提交"); loadExpenses(); }
+
+/* ---- 管理员 ---- */
+async function loadAdmin() {
+  const s = await api("/api/admin/overview");
+  statRow.innerHTML = [["用户数", s.users], ["会话数", s.sessions], ["待提交草稿", s.drafts], ["已提交", s.submitted]]
+    .map(([l, n]) => `<div class="stat"><div class="num">${n}</div><div class="label">${l}</div></div>`).join("");
+}
+async function uploadDoc() {
+  const f = docFile.files[0];
+  if (!f) return toast("请先选择文件");
+  const fd = new FormData(); fd.append("file", f);
+  try {
+    const r = await fetch(`/api/knowledge/documents?doc_type=${encodeURIComponent(docType.value)}`,
+      {method: "POST", headers: {"Authorization": "Bearer " + TOKEN}, body: fd});
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || "上传失败");
+    toast(`上传成功：${d.title}（${d.chunks} 个片段）`);
+  } catch (e) { toast(e.message); }
+}
+</script>
+</body>
+</html>

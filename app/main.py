@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """应用入口：创建 FastAPI 实例、启动建表、挂载路由。"""
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse
 
 from app.api import admin, auth, chat, expenses, knowledge
 from app.core.config import settings
@@ -32,8 +33,8 @@ app.include_router(admin.router)
 
 @app.get("/", include_in_schema=False)
 async def root():
-    """根路径自动跳转到 API 交互文档"""
-    return RedirectResponse(url="/docs")
+    """根路径返回中文聊天界面（员工与管理员共用）"""
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
 @app.get("/health", tags=["meta"])
