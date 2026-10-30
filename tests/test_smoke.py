@@ -103,11 +103,16 @@ def test_admin_overview(client):
     assert r.json()["users"] == 2
 
 
-def test_chat_requires_llm_config(client):
-    """未配置 RAG_API_KEY 时，对话接口返回 503 而不是 500 崩溃"""
+def test_chat_degrades_gracefully(client):
+    """对话接口容错：未配置 LLM Key 时返回 503 提示（不崩溃）；
+    已配置 Key 时（如本机 .env 已配 DeepSeek）返回 200 正常回答"""
+    from app.agent.llm.client import llm_available
     h = _employee_headers(client)
     r = client.post("/api/chat/sessions", headers=h)
     sid = r.json()["id"]
     r = client.post(f"/api/chat/sessions/{sid}/messages", headers=h,
                     json={"content": "住宿标准是多少"})
-    assert r.status_code == 503
+    if llm_available():
+        assert r.status_code == 200
+    else:
+        assert r.status_code == 503
