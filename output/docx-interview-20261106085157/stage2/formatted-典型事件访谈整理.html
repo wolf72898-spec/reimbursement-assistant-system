@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="docx-page-size" content="A4">
+  <title>典型事件访谈整理：口头指令施工、事后补签被拒</title>
+  <style>
+  /* 页面规则：正文页脚居中页码，封面/目录页无页脚 */
+  @page {
+    @bottom-center { content: counter(page); }
+  }
+  @page cover {
+    @bottom-center { content: none; }
+  }
+  section[role="cover"] { page: cover; }
+
+  :root {
+    --typography-fontFamily-heading: "微软雅黑", "Microsoft YaHei", "PingFang SC";
+    --ff-heading: var(--typography-fontFamily-heading, "微软雅黑", sans-serif);
+    --ff-body: "SimSun", "宋体", serif;
+    --fs-cover-category: var(--typography-fontSize-coverCategory, 14pt);
+    --fs-cover-title: var(--typography-fontSize-coverTitle, 22pt);
+    --fs-h1: var(--typography-fontSize-sectionHeader, 13pt);
+    --fs-h2: var(--typography-fontSize-h2, 12pt);
+    --fs-h3: var(--typography-fontSize-h3, 11pt);
+    --fs-body: var(--typography-fontSize-body, 12pt);
+    --fs-small: var(--typography-fontSize-small, 10pt);
+    --fs-tiny: var(--typography-fontSize-tiny, 9pt);
+    --fs-toc-title: var(--typography-fontSize-subtitle, 16pt);
+    --fs-card-value: var(--typography-fontSize-coverCategory, 14pt);
+    --fs-table: var(--typography-fontSize-caption, 10.5pt);
+    --lh-body: var(--typography-lineHeight-body, 1.6);
+    --fw-bold: var(--typography-fontWeight-heading, 700);
+    --color-primary: var(--color-primary, #1565C0);
+    --color-heading: var(--color-heading, #1A237E);
+    --color-text: var(--color-text, #212121);
+    --color-textSecondary: var(--color-textSecondary, #616161);
+    --color-emphasis: var(--color-emphasis, #c62828);
+    --color-surface: var(--color-surface, #f5f7fa);
+    --color-white: var(--color-background, #ffffff);
+    --color-border: var(--color-divider, #cccccc);
+    --color-summary-bg: var(--color-surface, #f5f7fa);
+    --spacing-paragraph: var(--spacing-paragraph, 0.75em);
+    --spacing-section: var(--spacing-sectionGap, 2em);
+    --spacing-block: var(--spacing-cardPadding, 1.2em);
+    --spacing-xs: 0.4em;
+    --spacing-sm: 0.5em;
+    --spacing-md: 0.6em;
+    --spacing-lg: 0.8em;
+    --spacing-xl: 1.5em;
+    --spacing-pad-card: 1.2em 1.5em;
+    --spacing-pad-header: 6px 12px;
+    --page-content-width: var(--layout-maxContentWidth, 15.6cm);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--ff-body);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--color-text);
+    background: var(--color-white);
+    max-width: var(--page-content-width);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* 封面 */
+  .cover-category { font-size: var(--fs-cover-category); font-family: var(--ff-heading); font-weight: var(--fw-bold); color: var(--color-primary); letter-spacing: 0.08em; margin-bottom: var(--spacing-lg); text-align: left; }
+  .cover-title { font-size: var(--fs-cover-title); font-family: var(--ff-heading); font-weight: var(--fw-bold); color: var(--color-heading); margin-bottom: var(--spacing-sm); text-align: left; }
+  .cover-subtitle { font-size: var(--fs-cover-category); font-family: var(--ff-heading); color: var(--color-textSecondary); margin-bottom: var(--spacing-section); text-align: left; }
+  .cover-meta { font-size: var(--fs-small); color: var(--color-textSecondary); text-align: left; }
+
+  /* 目录 */
+  .doc-toc { padding: var(--spacing-block) 0; }
+  .toc-title { font-weight: var(--fw-bold); font-size: var(--fs-toc-title); font-family: var(--ff-heading); margin-bottom: var(--spacing-md); text-align: left; }
+  .toc-list, .toc-list ol, .toc-list ul { list-style: none; list-style-type: none; padding-left: 0; }
+  .toc-list > li { margin-bottom: var(--spacing-xs); font-size: var(--fs-body); font-family: var(--ff-body); }
+  .toc-list ol { padding-left: var(--spacing-section); }
+  .toc-list a { color: var(--color-primary); text-decoration: none; }
+
+  /* 执行摘要 */
+  .executive-summary { margin: var(--spacing-xl) 0; padding: var(--spacing-pad-card); border-left: 4px solid var(--color-primary); background: var(--color-summary-bg); }
+  .summary-header h3 { font-size: var(--fs-h1); font-family: var(--ff-heading); font-weight: var(--fw-bold); color: var(--color-heading); margin-bottom: var(--spacing-lg); }
+  .summary-highlights { margin-bottom: var(--spacing-block); }
+  .summary-body { font-size: var(--fs-body); font-family: var(--ff-body); text-indent: 2em; }
+
+  /* 数据卡片 */
+  .card-value { font-size: var(--fs-card-value); font-weight: var(--fw-bold); color: var(--color-primary); }
+  .card-unit { font-size: var(--fs-small); color: var(--color-textSecondary); }
+  .card-trend { font-size: var(--fs-small); color: var(--color-emphasis); font-weight: var(--fw-bold); }
+
+  /* 章节标题：蓝底白字，保留标题语义 */
+  h2.section-header { font-size: var(--fs-h1); font-family: var(--ff-heading); font-weight: var(--fw-bold); background-color: var(--color-primary); color: var(--color-white); padding: var(--spacing-pad-header); margin-top: var(--spacing-section); margin-bottom: var(--spacing-block); }
+  h2 { font-size: var(--fs-h2); font-family: var(--ff-heading); font-weight: var(--fw-bold); color: var(--color-heading); margin-top: var(--spacing-xl); margin-bottom: var(--spacing-lg); }
+  h3 { font-size: var(--fs-h3); font-family: var(--ff-heading); font-weight: var(--fw-bold); color: var(--color-heading); margin-top: var(--spacing-block); margin-bottom: var(--spacing-md); }
+
+  p.body-para { font-family: var(--ff-body); font-size: var(--fs-body); text-indent: 2em; margin-bottom: var(--spacing-paragraph); text-align: justify; }
+  p.note-para { font-family: var(--ff-body); font-size: var(--fs-small); color: var(--color-textSecondary); margin-bottom: var(--spacing-paragraph); }
+  p.list-para { font-family: var(--ff-body); font-size: var(--fs-body); margin-bottom: var(--spacing-md); text-align: justify; }
+
+  .data-emphasis { color: var(--color-emphasis); font-weight: var(--fw-bold); }
+
+  /* 表格 */
+  table.data-table { width: 100%; border-collapse: collapse; margin: var(--spacing-lg) 0 var(--spacing-block) 0; }
+  table.data-table th { background: var(--color-surface); color: var(--color-heading); font-family: var(--ff-heading); font-weight: var(--fw-bold); font-size: var(--fs-table); padding: var(--spacing-sm) var(--spacing-lg); border: 1px solid var(--color-border); text-align: left; }
+  table.data-table td { font-family: var(--ff-body); font-size: var(--fs-table); padding: var(--spacing-sm) var(--spacing-lg); border: 1px solid var(--color-border); text-align: left; vertical-align: top; }
+
+  .src-note { font-size: var(--fs-tiny); color: var(--color-textSecondary); background: var(--color-surface); padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-block); }
+  .appendix { border-top: 1px solid var(--color-border); margin-top: var(--spacing-section); padding-top: var(--spacing-block); }
+  </style>
+</head>
+<body>
+  <section role="cover" class="report-cover">
+    <p class="cover-category">工程变更与签证协同 · 业务挖掘</p>
+    <p class="cover-title">典型事件访谈整理</p>
+    <p class="cover-subtitle">口头指令施工、事后补签被拒 —— 事件还原、影响量化与改进建议</p>
+    <div class="cover-meta">
+      <p>采访对象：林亦舟（现场施工员） | 事件编号：GC-2026-0117（示例） | 整理日期：2026-11-06</p>
+    </div>
+  </section>
+
+  <section role="cover">
+    <nav class="doc-toc" aria-label="文档目录">
+      <p class="toc-title">目录</p>
+      <ol class="toc-list">
+        <li><a href="#section-1">一、访谈概况</a></li>
+        <li><a href="#section-2">二、事件经过还原（第一轮访谈）</a>
+          <ol>
+            <li><a href="#section-2-1">2.1 时间线</a></li>
+            <li><a href="#section-2-2">2.2 被拒根因</a></li>
+          </ol>
+        </li>
+        <li><a href="#section-3">三、影响量化（第二轮访谈）</a>
+          <ol>
+            <li><a href="#section-3-1">3.1 可引用的整体量级（已核实口径）</a></li>
+            <li><a href="#section-3-2">3.2 单项损失暂不可量化的原因</a></li>
+          </ol>
+        </li>
+        <li><a href="#section-4">四、改进建议与 AI 边界（第三轮访谈）</a>
+          <ol>
+            <li><a href="#section-4-1">4.1 三点期望</a></li>
+            <li><a href="#section-4-2">4.2 坚决不做的事</a></li>
+            <li><a href="#section-4-3">4.3 验收建议</a></li>
+          </ol>
+        </li>
+        <li><a href="#section-5">五、待确认口径清单</a></li>
+        <li><a href="#section-6">六、引用事实编号对照</a></li>
+      </ol>
+    </nav>
+  </section>
+
+  <section role="body" data-page-restart="1">
+    <div class="executive-summary">
+      <div class="summary-header">
+        <h3 class="summary-title">执行摘要</h3>
+      </div>
+      <div class="summary-highlights">
+        <table class="data-table"><thead><tr>
+            <th>变更确认周期</th><th>月均返工损失</th><th>每月变更量</th><th>补签拖延时长</th>
+          </tr></thead><tbody><tr>
+            <td><span class="card-value">12 天</span><br><span class="card-trend">目标压至 6 天</span></td>
+            <td><span class="card-value">45 万元</span><br><span class="card-trend">目标减少 30%</span></td>
+            <td><span class="card-value">85 个</span><br><span class="card-trend">每项核对约 90 分钟</span></td>
+            <td><span class="card-value">约 3 周</span><br><span class="card-trend">示例口径</span></td>
+          </tr></tbody></table>
+      </div>
+      <div class="summary-body">本报告基于对现场施工员林亦舟的典型事件访谈整理。事件 GC-2026-0117 集中呈现了两大高频问题：图纸版本不一致与口头指令无留痕。口头指令增加管线施工后签证被拒，授权链无法确认，前后拖延约三周；结合每月 85 个变更、每项核对约 90 分钟的整体量级，报告提出"开工前拦、证据随单走、人工兜底红线"三点改进期望，并整理出四项待确认口径清单，供后续验证与试点验收使用。</div>
+    </div>
+
+    <p class="note-para">本文档基于 2026-11-06 对现场施工员林亦舟的典型事件访谈记录（原始终稿：docs/construction-change/07-典型事件访谈记录.txt）整理而成。事件细节来自实验室合成场景事实库，文中金额、天数为示例口径，正式引用前须经造价工程师核对。</p>
+
+    <h2 class="section-header" id="section-1">一、访谈概况</h2>
+    <table class="data-table"><thead><tr><th style="width:25%">项目</th><th>内容</th></tr></thead><tbody><tr><td>采访对象</td><td>林亦舟 · 现场施工员（滨江商务中心项目二期）</td></tr><tr><td>事件编号</td><td>GC-2026-0117（示例编号）</td></tr><tr><td>事件主题</td><td>口头指令增加管线施工 → 事后补签签证被拒</td></tr><tr><td>采访轮次</td><td>3 轮：事件经过 → 影响量化 → 改进建议与边界</td></tr><tr><td>访谈形式</td><td>一对一深度访谈，逐轮追问，要求具体化、量化</td></tr></tbody></table>
+    <p class="body-para">选择该事件作为典型样本的理由：它同时叠加了业务访谈中确认的两大高频问题——图纸版本不一致（现场拿到旧图施工）与口头指令无留痕（授权链断裂），且直接指向"活干了、钱拿不到"的一线痛点。</p>
+
+    <h2 class="section-header" id="section-2">二、事件经过还原（第一轮访谈）</h2>
+    <p class="body-para">本轮访谈请被访者完整还原事件从口头指令到补签被拒的全过程，并归纳被拒根因。</p>
+    <h3 id="section-2-1">2.1 时间线</h3>
+    <table class="data-table"><thead><tr><th style="width:18%">阶段</th><th style="width:22%">时间</th><th>事件</th></tr></thead><tbody><tr><td>指令下达</td><td>10 月中旬某日下午</td><td>甲方驻场代表巡检时口头要求：走廊增加约 30 米电缆桥架、6 个喷淋支管接口，表示"先干着，签证回头补"</td></tr><tr><td>组织施工</td><td>当晚起，约 2 天</td><td>两个班组施工，无书面变更指令、无交底签收记录，指令仅存在于现场口头与微信群一句话</td></tr><tr><td>报签被拒</td><td>当月月底</td><td>报送签证（GC-2026-0117）被驳回：查授权链无法确认指令来源与书面依据；设计单位称未收到变更委托，监理称无确认记录</td></tr><tr><td>补救受理</td><td>次月</td><td>补设计回复与监理确认后重新受理，前后拖延约 3 周</td></tr></tbody></table>
+    <h3 id="section-2-2">2.2 被拒根因</h3>
+    <p class="body-para">签证被驳回的直接原因是授权链断裂：口头指令没有落到任何可追溯的载体上，无法回答"谁下的指令、依据是什么"这两个问题。被访者明确指出，这类情况下责任容易落到施工员个人头上——活干了、量出了，但签证立不住。</p>
+
+    <h2 class="section-header" id="section-3">三、影响量化（第二轮访谈）</h2>
+    <p class="body-para">本轮先给出可引用的整体量级，再说明单项损失暂不可量化的口径原因。</p>
+    <h3 id="section-3-1">3.1 可引用的整体量级（已核实口径）</h3>
+    <p class="list-para">- 每月约 <span class="data-emphasis">85 个变更</span>，核对图纸与签字每项约 <span class="data-emphasis">90 分钟</span>，时间从盯现场中挤出（事实 f12）；</p>
+    <p class="list-para">- 变更确认平均 <span class="data-emphasis">12 天</span>，管理层目标压缩至 6 天（事实 f00）；</p>
+    <p class="list-para">- 返工损失每月约 <span class="data-emphasis">45 万元</span>，目标减少 30%（事实 f00）；</p>
+    <p class="list-para">- 图纸版本不一致是其中最典型的一类：现场拿到旧图施工，设计新图已上传但无人交底（事实 f10）。</p>
+    <h3 id="section-3-2">3.2 单项损失暂不可量化的原因</h3>
+    <p class="body-para">被访者明确说明：按"口头指令"单独拆分的占比与单项损失，目前没有统计，尚未核实，不能报数（与访谈 turn-48 口径一致）。量化前提是先固定三个口径：</p>
+    <p class="list-para">1. 统计口径：按签证单数还是按涉及工程量统计；</p>
+    <p class="list-para">2. 登记责任：由谁在哪个环节登记口头指令与补签结果；</p>
+    <p class="list-para">3. 金额口径：以造价核定为准还是以申报为准。</p>
+    <p class="body-para">上述规则需项目经理与造价工程师先确认；口径确定后被访者可配合记录。</p>
+
+    <h2 class="section-header" id="section-4">四、改进建议与 AI 边界（第三轮访谈）</h2>
+    <p class="body-para">被访者从"AI 能做什么"与"坚决不做什么"两方面划定了辅助边界，并给出验收观测建议。</p>
+    <h3 id="section-4-1">4.1 三点期望</h3>
+    <p class="list-para"><strong>第一，开工前拦。</strong>AI 在开工前提示"这张图不是最新版"，口头指令当场在系统留痕并绑定授权人；登记须手机端顺手完成，草稿可暂存并显示最后同步时间（事实 f10、f11、f13）。</p>
+    <p class="list-para"><strong>第二，证据随单走。</strong>关键说明不再留在个人便签或微信群，交接须写明业务编号、当前版本、未解决事项与接手人，对方确认接手才算完成，仅发消息不算（事实 f23）。</p>
+    <p class="list-para"><strong>第三，人工兜底红线。</strong>AI 建议必须显示对应原记录与待确认字段；碰到口头变更、授权链不清时先暂停建议，交造价工程师核对后再继续，错误结果不得覆盖原记录（事实 f15）。</p>
+    <h3 id="section-4-2">4.2 坚决不做的事</h3>
+    <p class="list-para">- 不代签设计或合同文件（事实 f52）；</p>
+    <p class="list-para">- 涉及最终决定必须由对应审批人确认，不能借用他人账号（事实 f41）。</p>
+    <h3 id="section-4-3">4.3 验收建议</h3>
+    <p class="body-para">优先观测"旧图施工被提前拦住的比例"。实验室试点指标为版本错误提示召回 <span class="data-emphasis">100%</span>、签证依据完整率 <span class="data-emphasis">95%</span>（事实 f02、f42），但"应提示的版本错误"清单口径尚未定义，召回率暂不可验。该清单应由林亦舟与秦芮共同定义，人工标注样本后测试，口径由傅景确认。</p>
+
+    <h2 class="section-header" id="section-5">五、待确认口径清单</h2>
+    <table class="data-table"><thead><tr><th style="width:10%">序号</th><th>待确认事项</th><th style="width:30%">建议责任人</th></tr></thead><tbody><tr><td>1</td><td>"应提示版本错误"清单定义与标注口径</td><td>林亦舟、秦芮，傅景确认</td></tr><tr><td>2</td><td>口头指令登记环节、载体与授权人绑定规则</td><td>顾明岚、造价工程师</td></tr><tr><td>3</td><td>单项补签损失的统计口径（单数/工程量/金额基准）</td><td>唐映秋、叶书</td></tr><tr><td>4</td><td>交接确认与超时升级阈值</td><td>唐映秋、顾明岚</td></tr></tbody></table>
+
+    <div class="appendix">
+      <h2 class="section-header" id="section-6">六、引用事实编号对照</h2>
+      <table class="data-table"><thead><tr><th style="width:20%">事实编号</th><th>内容摘要</th></tr></thead><tbody><tr><td>f00</td><td>变更确认 12 天 → 目标 6 天；返工损失每月 45 万元 → 减 30%</td></tr><tr><td>f02</td><td>试点指标：版本错误提示召回 100%、签证依据完整率 95%</td></tr><tr><td>f10</td><td>现场拿到旧图施工，设计新图已上传但没人做交底</td></tr><tr><td>f11</td><td>口头要求增加管线，事后签证被拒，无法确认授权链</td></tr><tr><td>f12</td><td>每月约 85 个变更，核对图纸与签字每项约 90 分钟</td></tr><tr><td>f13</td><td>草稿须可暂存并显示最后同步时间</td></tr><tr><td>f15</td><td>授权链不清时暂停建议，交造价核对；错误结果不能覆盖原记录</td></tr><tr><td>f23</td><td>交接须含编号、版本、状态、未决事项与接手人，确认接手才算完成</td></tr><tr><td>f41</td><td>涉及最终决定须审批人确认，不能借用他人账号</td></tr><tr><td>f52</td><td>只做版本核对与变更追踪，不代签设计或合同文件</td></tr></tbody></table>
+    </div>
+  </section>
+</body>
+</html>
