@@ -20,6 +20,8 @@
 | --- | --- | --- |
 | **工程架构** | [`app/main.py`](../app/main.py) · [`app/core/`](../app/core/) · [`app/api/`](../app/api/) · [`app/models/`](../app/models/) | FastAPI 异步后端：JWT 认证、变更/交底/签证领域接口、SSE 对话、管理后台、状态机强制流转 |
 | **Agent 框架** | [`app/agent/`](../app/agent/) | 10 工具注册表 + ticket 约束状态机；Harness 编排（5 轮上限）；HITL 人工闸门（中断/恢复）；决策日志落库 |
+
+> **人工确认 / 审核点（≥3 处，红线）**：① 交底签收确认（全员签收才流转）；② 签证造价人工核价（AI 起草稿停于待核定）；③ 业主确认生效；④ AI 起草 HITL 中断确认（`draft_visa` / `create_draft`）。AI 不自动批准任何业务动作、不直接写入业务系统。
 | **知识库** | [`app/rag/retriever.py`](../app/rag/retriever.py) · [`storage/policies/`](../storage/policies/) · [`app/api/knowledge.py`](../app/api/knowledge.py) | BM25（中文 bigram）+ FAISS 向量混合检索，RRF 融合；含《工程变更与签证管理制度》等制度文档 |
 
 ## ③ 工具脚本

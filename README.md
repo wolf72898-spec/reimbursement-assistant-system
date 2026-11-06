@@ -77,7 +77,20 @@ AI：[query_changes] → [get_change_detail] → [draft_visa]
     → ⏸ 金额需人工核定后才生效，请确认
 ```
 
-## 🚀 快速开始
+## 🔐 人工确认 / 审核点（4 处，红线）
+
+| # | 确认点 | 机制 |
+| --- | --- | --- |
+| 1 | **交底签收确认** | 每角色本人签收留痕（人/时间/版本），全员签收才自动流转待签证，不可代签 |
+| 2 | **签证造价核价** | 签证单必须造价人工核价才能进入待业主确认；AI 起草稿停留在待核定 |
+| 3 | **业主确认生效** | 签证生效必须业主确认动作，未确认不产生结算效力 |
+| 4 | **AI 起草 HITL** | `draft_visa` / `create_draft` 强制中断确认，确认恢复 / 取消善后，决策日志全落库 |
+
+## 🌐 在线演示
+
+**MVP 系统已上线部署**：<https://change-visa-collab.app.workbuddy.host/?sharecode=WW7S3LLLSD>
+
+## 🚀 本地快速开始
 
 ```bash
 pip install -r requirements.txt
@@ -198,8 +211,11 @@ tests/                       冒烟测试 8 条 + 评测用例 30 条
 
 ```bash
 python -m pytest tests/test_smoke.py -v     # 冒烟测试 8 条（无需 API Key）
+python tools/run_scenarios.py               # 五类场景端到端 32 步（需本地服务 :8010）
 python -c "import json;print(len(json.load(open('tests/evaluation_cases.json',encoding='utf-8'))))"   # 30
 ```
+
+场景测试方案与可视化报告：[`docs/construction-change/12-测试方案.md`](docs/construction-change/12-测试方案.md)（md+docx）与 13~17 号场景 docx；过程图见 [`docs/construction-change/evidence/`](docs/construction-change/evidence/)。
 
 ## ⚙️ 环境变量
 

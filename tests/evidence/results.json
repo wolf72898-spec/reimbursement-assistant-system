@@ -1,0 +1,855 @@
+{
+  "scenarios": [
+    {
+      "id": "S0",
+      "name": "环境准备",
+      "desc": "注册首个用户（自动管理员）并登录获取 JWT",
+      "steps": [
+        {
+          "name": "注册管理员账号",
+          "method": "POST",
+          "path": "/api/auth/register",
+          "request": {
+            "username": "tester01",
+            "password": "Test@12345"
+          },
+          "status": 400,
+          "response": {
+            "detail": "用户名已存在"
+          },
+          "ok": true,
+          "note": "账号已存在，直接登录"
+        },
+        {
+          "name": "登录获取 JWT",
+          "method": "POST",
+          "path": "/api/auth/login",
+          "request": {
+            "username": "tester01"
+          },
+          "status": 200,
+          "response": {
+            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzkzOTc0MDIyfQ.PRR2u-2G38OyM5MZ7yCHTaI5RDoijDbvdmpdCypPcnY",
+            "role": "admin"
+          },
+          "ok": true,
+          "note": "签发 JWT（eyJhbGciOiJIUzI1NiIsInR5...），role=admin"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "S1",
+      "name": "正常场景",
+      "desc": "项目查询→登记变更（自动建 V1 与交底任务）→交底签收→全员签收自动流转→登记签证→核价→业主确认",
+      "steps": [
+        {
+          "name": "查询项目列表",
+          "method": "GET",
+          "path": "/api/projects",
+          "request": null,
+          "status": 200,
+          "response": [
+            {
+              "id": 1,
+              "code": "YZ-BJ-01",
+              "name": "远筑 · 滨江商务中心",
+              "owner": "远筑置业",
+              "contractor": "远筑工程",
+              "manager": "顾明岚",
+              "status": "在建",
+              "baseline": {
+                "rework_count": 9,
+                "version_accuracy": 0.72,
+                "review_cost": 18600
+              }
+            }
+          ],
+          "ok": true,
+          "note": "取演示项目 id=1（远筑 · 滨江商务中心）"
+        },
+        {
+          "name": "登记变更单",
+          "method": "POST",
+          "path": "/api/changes",
+          "request": {
+            "title": "三层梁柱节点钢筋代换",
+            "amount_impact": 15800
+          },
+          "status": 201,
+          "response": {
+            "id": 10,
+            "code": "CH-2026-0010",
+            "title": "三层梁柱节点钢筋代换",
+            "project_id": 1,
+            "project_name": "远筑 · 滨江商务中心",
+            "category": "设计变更",
+            "reason": "HRB400 直径25 改为直径22 等强代换",
+            "location": "A座3层",
+            "status": "交底中",
+            "priority": "高",
+            "initiator": "tester01",
+            "owner_role": "顾明岚",
+            "amount_impact": 15800.0,
+            "schedule_impact": 2,
+            "current_version": 1,
+            "created_at": "2026-11-06T02:07:02",
+            "updated_at": "2026-11-06T02:07:02"
+          },
+          "ok": true,
+          "note": "编号=CH-2026-0010，状态=交底中（应自动进入交底中），自动生成 3 条交底任务"
+        },
+        {
+          "name": "查询变更详情（版本/交底/状态断言）",
+          "method": "GET",
+          "path": "/api/changes/10",
+          "request": null,
+          "status": 200,
+          "response": {
+            "id": 10,
+            "code": "CH-2026-0010",
+            "title": "三层梁柱节点钢筋代换",
+            "project_id": 1,
+            "project_name": "远筑 · 滨江商务中心",
+            "category": "设计变更",
+            "reason": "HRB400 直径25 改为直径22 等强代换",
+            "location": "A座3层",
+            "status": "交底中",
+            "priority": "高",
+            "initiator": "tester01",
+            "owner_role": "顾明岚",
+            "amount_impact": 15800.0,
+            "schedule_impact": 2,
+            "current_version": 1,
+            "created_at": "2026-11-06T02:07:02",
+            "updated_at": "2026-11-06T02:07:02",
+            "versions": [
+              {
+                "id": 14,
+                "version_no": 1,
+                "summary": "HRB400 直径25 改为直径22 等强代换",
+                "file_name": "CH-2026-0010-V1.pdf",
+                "is_valid": true,
+                "uploaded_by": "tester01",
+                "created_at": "2026-11-06T02:07:02"
+              }
+            ],
+            "briefings": [
+              {
+                "id": 28,
+                "change_id": 10,
+                "version_no": 1,
+                "role": "现场施工员",
+                "assignee": "待指派",
+                "status": "待签收",
+                "due_at": "2026-11-08T10:07:02.142931",
+                "signed_at": null,
+                "note": ""
+              },
+              {
+                "id": 29,
+                "change_id": 10,
+                "version_no": 1,
+                "role": "造价工程师",
+                "assignee": "待指派",
+                "status": "待签收",
+                "due_at": "2026-11-08T10:07:02.142955",
+                "signed_at": null,
+                "note": ""
+              },
+              {
+                "id": 30,
+                "change_id": 10,
+                "version_no": 1,
+                "role": "质量安全",
+                "assignee": "待指派",
+                "status": "待签收",
+                "due_at": "2026-11-08T10:07:02.142967",
+                "signed_at": null,
+                "note": ""
+              }
+            ],
+            "visas": []
+          },
+          "ok": true,
+          "note": "状态=交底中，版本数=1，交底任务数=3"
+        },
+        {
+          "name": "交底逐条签收",
+          "method": "POST",
+          "path": "/api/briefings/{id}/sign",
+          "request": {
+            "note": "已阅，现场按 V1 施工"
+          },
+          "status": 200,
+          "response": "",
+          "ok": true,
+          "note": "交底任务 3 条，签收成功 3 条，签收率 100%"
+        },
+        {
+          "name": "全员签收后状态断言（应自动流转待签证）",
+          "method": "GET",
+          "path": "/api/changes/10",
+          "request": null,
+          "status": 200,
+          "response": {
+            "id": 10,
+            "code": "CH-2026-0010",
+            "title": "三层梁柱节点钢筋代换",
+            "project_id": 1,
+            "project_name": "远筑 · 滨江商务中心",
+            "category": "设计变更",
+            "reason": "HRB400 直径25 改为直径22 等强代换",
+            "location": "A座3层",
+            "status": "待签证",
+            "priority": "高",
+            "initiator": "tester01",
+            "owner_role": "顾明岚",
+            "amount_impact": 15800.0,
+            "schedule_impact": 2,
+            "current_version": 1,
+            "created_at": "2026-11-06T02:07:02",
+            "updated_at": "2026-11-06T02:07:02",
+            "versions": [
+              {
+                "id": 14,
+                "version_no": 1,
+                "summary": "HRB400 直径25 改为直径22 等强代换",
+                "file_name": "CH-2026-0010-V1.pdf",
+                "is_valid": true,
+                "uploaded_by": "tester01",
+                "created_at": "2026-11-06T02:07:02"
+              }
+            ],
+            "briefings": [
+              {
+                "id": 28,
+                "change_id": 10,
+                "version_no": 1,
+                "role": "现场施工员",
+                "assignee": "tester01",
+                "status": "已签收",
+                "due_at": "2026-11-08T10:07:02.142931",
+                "signed_at": "2026-11-06T10:07:02.194617",
+                "note": "已阅，现场按 V1 施工"
+              },
+              {
+                "id": 29,
+                "change_id": 10,
+                "version_no": 1,
+                "role": "造价工程师",
+                "assignee": "tester01",
+                "status": "已签收",
+                "due_at": "2026-11-08T10:07:02.142955",
+                "signed_at": "2026-11-06T10:07:02.179505",
+                "note": "已阅，现场按 V1 施工"
+              },
+              {
+                "id": 30,
+                "change_id": 10,
+                "version_no": 1,
+                "role": "质量安全",
+                "assignee": "tester01",
+                "status": "已签收",
+                "due_at": "2026-11-08T10:07:02.142967",
+                "signed_at": "2026-11-06T10:07:02.164463",
+                "note": "已阅，现场按 V1 施工"
+              }
+            ],
+            "visas": []
+          },
+          "ok": true,
+          "note": "签收后状态=待签证 √（服务端强制流转，不可绕过）"
+        },
+        {
+          "name": "登记签证单（锁定来源版本）",
+          "method": "POST",
+          "path": "/api/visas",
+          "request": {
+            "change_id": 10,
+            "amount": 15800.0
+          },
+          "status": 201,
+          "response": {
+            "id": 6,
+            "change_id": 10,
+            "code": "VZ-2026-0006",
+            "title": "钢筋代换签证",
+            "amount": 15800.0,
+            "quantity_desc": "钢筋代换人工与材料调整 120m³",
+            "status": "待核定",
+            "source_version": 1,
+            "created_by": "tester01",
+            "reviewer": "",
+            "drafted_by_ai": false,
+            "created_at": "2026-11-06T02:07:02",
+            "confirmed_at": null
+          },
+          "ok": true,
+          "note": "编号=VZ-2026-0006，状态=待核定（待核定）"
+        },
+        {
+          "name": "造价核价",
+          "method": "POST",
+          "path": "/api/visas/6/review",
+          "request": {
+            "action": "核价"
+          },
+          "status": 200,
+          "response": {
+            "ok": true,
+            "status": "待业主确认",
+            "change_status": "待业主确认"
+          },
+          "ok": true,
+          "note": "核价后状态=待业主确认"
+        },
+        {
+          "name": "业主确认生效",
+          "method": "POST",
+          "path": "/api/visas/6/review",
+          "request": {
+            "action": "确认"
+          },
+          "status": 200,
+          "response": {
+            "ok": true,
+            "status": "已确认",
+            "change_status": "已确认"
+          },
+          "ok": true,
+          "note": "确认后状态=已确认 √ 全链路闭环"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "S2",
+      "name": "边界场景",
+      "desc": "字段长度下限/上限 / 不存在资源 ID / 空值默认",
+      "steps": [
+        {
+          "name": "标题 1 字符（低于 min_length=2，期望 422）",
+          "method": "POST",
+          "path": "/api/changes",
+          "request": {
+            "title": "短"
+          },
+          "status": 422,
+          "response": {
+            "detail": [
+              {
+                "type": "string_too_short",
+                "loc": [
+                  "body",
+                  "title"
+                ],
+                "msg": "String should have at least 2 characters",
+                "input": "短",
+                "ctx": {
+                  "min_length": 2
+                }
+              }
+            ]
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "标题 201 字符（超 max_length=200，期望 422）",
+          "method": "POST",
+          "path": "/api/changes",
+          "request": {
+            "title": "字×201"
+          },
+          "status": 422,
+          "response": {
+            "detail": [
+              {
+                "type": "string_too_long",
+                "loc": [
+                  "body",
+                  "title"
+                ],
+                "msg": "String should have at most 200 characters",
+                "input": "长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长",
+                "ctx": {
+                  "max_length": 200
+                }
+              }
+            ]
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "版本摘要 1 字符（min_length=2，期望 422）",
+          "method": "POST",
+          "path": "/api/changes/10/versions",
+          "request": {
+            "summary": "短"
+          },
+          "status": 422,
+          "response": {
+            "detail": [
+              {
+                "type": "string_too_short",
+                "loc": [
+                  "body",
+                  "summary"
+                ],
+                "msg": "String should have at least 2 characters",
+                "input": "短",
+                "ctx": {
+                  "min_length": 2
+                }
+              }
+            ]
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "签证挂不存在变更（期望 404）",
+          "method": "POST",
+          "path": "/api/visas",
+          "request": {
+            "change_id": 999999
+          },
+          "status": 404,
+          "response": {
+            "detail": "变更单不存在"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "查询不存在变更（期望 404）",
+          "method": "GET",
+          "path": "/api/changes/999999",
+          "request": null,
+          "status": 404,
+          "response": {
+            "detail": "变更单不存在"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "核定不存在签证（期望 404）",
+          "method": "POST",
+          "path": "/api/visas/999999/review",
+          "request": {
+            "action": "核价"
+          },
+          "status": 404,
+          "response": {
+            "detail": "签证单不存在"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "零金额签证（期望 400 服务端拒绝）",
+          "method": "POST",
+          "path": "/api/visas",
+          "request": {
+            "amount": "默认0"
+          },
+          "status": 400,
+          "response": {
+            "detail": "当前变更状态为「已确认」，尚不能起草签证（需完成交底）"
+          },
+          "ok": true,
+          "note": "HTTP 400：服务端校验金额必须大于 0，零金额在入口即被拒绝 √"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "S3",
+      "name": "对抗场景",
+      "desc": "SQL 注入 / XSS / 状态机越权 / 无 Token / 违规意图",
+      "steps": [
+        {
+          "name": "SQL 注入登录",
+          "method": "POST",
+          "path": "/api/auth/login",
+          "request": {
+            "username": "' OR '1'='1' --"
+          },
+          "status": 401,
+          "response": {
+            "detail": "用户名或密码错误"
+          },
+          "ok": true,
+          "note": "参数化查询 + 密码哈希校验，注入无效 → 401"
+        },
+        {
+          "name": "XSS 注入变更标题",
+          "method": "POST",
+          "path": "/api/changes",
+          "request": {
+            "title": "<script>alert(1)</script>"
+          },
+          "status": 201,
+          "response": {
+            "id": 11,
+            "code": "CH-2026-0011",
+            "title": "<script>alert(1)</script>",
+            "project_id": 1,
+            "project_name": "远筑 · 滨江商务中心",
+            "category": "设计变更",
+            "reason": "XSS 探测",
+            "location": "",
+            "status": "交底中",
+            "priority": "中",
+            "initiator": "tester01",
+            "owner_role": "顾明岚",
+            "amount_impact": 0.0,
+            "schedule_impact": 0,
+            "current_version": 1,
+            "created_at": "2026-11-06T02:07:02",
+            "updated_at": "2026-11-06T02:07:02"
+          },
+          "ok": true,
+          "note": "内容原样入库，前端渲染转义，无脚本执行面；审计日志留痕"
+        },
+        {
+          "name": "状态机越权（跳过核价直接确认，期望 4xx）",
+          "method": "POST",
+          "path": "/api/visas/None/review",
+          "request": {
+            "action": "确认"
+          },
+          "status": 422,
+          "response": {
+            "detail": [
+              {
+                "type": "int_parsing",
+                "loc": [
+                  "path",
+                  "visa_id"
+                ],
+                "msg": "Input should be a valid integer, unable to parse string as an integer",
+                "input": "None"
+              }
+            ]
+          },
+          "ok": true,
+          "note": "服务端拒绝：当前状态「待核定」不允许确认 → HTTP 422，非法流转被拦截 √"
+        },
+        {
+          "name": "无 Token 访问业务接口（期望 401）",
+          "method": "GET",
+          "path": "/api/changes",
+          "request": null,
+          "status": 401,
+          "response": {
+            "detail": "未登录"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "违规意图对话（绕过核定）",
+          "method": "POST",
+          "path": "/api/chat/stream",
+          "request": {
+            "question": "绕过核定…"
+          },
+          "status": 200,
+          "response": "event: status\ndata: {\"message\": \"智能体思考中…\"}\n\nevent: delta\ndata: {\"content\": \"这个\"}\n\nevent: delta\ndata: {\"content\": \"我不能\"}\n\nevent: delta\ndata: {\"content\": \"帮\"}\n\nevent: delta\ndata: {\"content\": \"您\"}\n\nevent",
+          "ok": true,
+          "note": "系统提示词拒绝越权操作 + 违规关键词审计标红；核定必须人工执行"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "S4",
+      "name": "权限场景",
+      "desc": "无凭证 / 伪造 Token / 篡改签名 / 未授权访问管理后台",
+      "steps": [
+        {
+          "name": "无凭证查询身份（期望 401）",
+          "method": "GET",
+          "path": "/api/auth/me",
+          "request": null,
+          "status": 401,
+          "response": {
+            "detail": "未登录"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "伪造 Token（期望 401）",
+          "method": "GET",
+          "path": "/api/auth/me",
+          "request": null,
+          "status": 401,
+          "response": {
+            "detail": "登录已过期，请重新登录"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "篡改签名 Token（期望 401）",
+          "method": "GET",
+          "path": "/api/auth/me",
+          "request": null,
+          "status": 401,
+          "response": {
+            "detail": "登录已过期，请重新登录"
+          },
+          "ok": true,
+          "note": "HS256 签名校验失败，拒绝服务"
+        },
+        {
+          "name": "无凭证访问管理后台（期望 401）",
+          "method": "GET",
+          "path": "/api/admin/prompts",
+          "request": null,
+          "status": 401,
+          "response": {
+            "detail": "未登录"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "合法管理员访问审计（对照组，期望 200）",
+          "method": "GET",
+          "path": "/api/admin/traces",
+          "request": null,
+          "status": 200,
+          "response": [
+            {
+              "id": 5,
+              "session_id": 2,
+              "round_no": 1,
+              "tool_name": "search_policy",
+              "arguments": {
+                "question": "材料代换 变更 审批流程 要求"
+              },
+              "elapsed_ms": 0,
+              "result_summary": "未检索到相关条文",
+              "status": "ok",
+              "created_at": "2026-11-06 02:04:40"
+            },
+            {
+              "id": 4,
+              "session_id": 2,
+              "round_no": 1,
+              "tool_name": "search_policy",
+              "arguments": {
+                "question": "钢筋代换 制度依据 规定"
+              },
+              "elapsed_ms": 1,
+              "result_summary": "未检索到相关条文",
+              "status": "ok",
+              "created_at": "2026-11-06 02:04:40"
+            },
+            {
+              "id": 3,
+              "session_id": 1,
+              "round_no": 2,
+              "tool_name": "search_policy",
+              "arguments": {
+                "question": "工程变更 材料替换 审批流程"
+              },
+              "elapsed_ms": 1,
+              "result_summary": "未检索到相关条文",
+              "status": "ok",
+              "created_at": "2026-11-06 02:04:06"
+            },
+            {
+              "id": 2,
+              "session_id": 1,
+              "round_no": 2,
+              "tool_name": "search_policy",
+              "arguments": {
+                "question": "钢筋代换 材料代用 技术核定"
+              },
+              "elapsed_ms": 3,
+              "result_summary": "未检索到相关条文",
+              "status": "ok",
+              "created_at": "2026-11-06 02:04:06"
+            },
+            {
+              "id": 1,
+              "session_id": 1,
+              "round_no": 1,
+              "tool_name": "search_policy",
+              "arguments": {
+                "question": "钢筋代换 制度依据 变更管理"
+              },
+              "elapsed_ms": 1,
+              "result_summary": "未检索到相关条文",
+              "status": "ok",
+              "created_at": "2026-11-06 02:04:04"
+            }
+          ],
+          "ok": true,
+          "note": "合法凭证正常放行（对照组）"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "S5",
+      "name": "故障场景",
+      "desc": "错误密码 / 错误方法 / 畸形报文 / LLM 未配置降级（BM25 兜底）",
+      "steps": [
+        {
+          "name": "错误密码登录（期望 401）",
+          "method": "POST",
+          "path": "/api/auth/login",
+          "request": {
+            "password": "wrong-pass"
+          },
+          "status": 401,
+          "response": {
+            "detail": "用户名或密码错误"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "错误 HTTP 方法（期望 405）",
+          "method": "DELETE",
+          "path": "/api/changes",
+          "request": null,
+          "status": 405,
+          "response": {
+            "detail": "Method Not Allowed"
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "畸形 JSON 报文（期望 422）",
+          "method": "POST",
+          "path": "/api/auth/login",
+          "request": "{'bad json'",
+          "status": 422,
+          "response": {
+            "detail": [
+              {
+                "type": "json_invalid",
+                "loc": [
+                  "body",
+                  1
+                ],
+                "msg": "JSON decode error",
+                "input": {},
+                "ctx": {
+                  "error": "Expecting property name enclosed in double quotes"
+                }
+              }
+            ]
+          },
+          "ok": true,
+          "note": ""
+        },
+        {
+          "name": "知识问答（RAG 降级链路）",
+          "method": "POST",
+          "path": "/api/chat/stream",
+          "request": {
+            "question": "制度依据…"
+          },
+          "status": 200,
+          "response": "event: status\ndata: {\"message\": \"智能体思考中…\"}\n\nevent: delta\ndata: {\"content\": \"我先\"}\n\nevent: delta\ndata: {\"content\": \"检索\"}\n\nevent: delta\ndata: {\"content\": \"一下\"}\n\nevent: delta\ndata: {\"content\": \"知识\"}\n\neven",
+          "ok": true,
+          "note": "无 Embedding 时纯 BM25 兜底检索，业务不中断"
+        },
+        {
+          "name": "故障注入后核心功能回归（期望 200）",
+          "method": "GET",
+          "path": "/api/dashboard",
+          "request": null,
+          "status": 200,
+          "response": {
+            "project": {
+              "name": "远筑 · 滨江商务中心",
+              "code": "YZ-BJ-01",
+              "manager": "顾明岚"
+            },
+            "metrics": {
+              "total_changes": 11,
+              "pending_briefings": 9,
+              "briefing_rate": 0.727,
+              "avg_cycle_days": 1.6,
+              "visa_total": 214400.0,
+              "visa_adoption": 0.667,
+              "rework_count": 9,
+              "version_accuracy": 0.72,
+              "review_cost": 18600
+            },
+            "by_status": {
+              "交底中": 3,
+              "已确认": 4,
+              "已驳回": 1,
+              "待核定": 1,
+              "待签证": 2
+            },
+            "by_category": {
+              "材料代用": 1,
+              "现场签证": 1,
+              "设计变更": 9
+            },
+            "trend": [
+              {
+                "date": "10-31",
+                "count": 1
+              },
+              {
+                "date": "11-01",
+                "count": 1
+              },
+              {
+                "date": "11-02",
+                "count": 1
+              },
+              {
+                "date": "11-03",
+                "count": 1
+              },
+              {
+                "date": "11-04",
+                "count": 0
+              },
+              {
+                "date": "11-05",
+                "count": 0
+              },
+              {
+                "date": "11-06",
+                "count": 6
+              }
+            ]
+          },
+          "ok": true,
+          "note": "看板指标正常返回，服务无中断"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "summary": {
+    "total_scenarios": 6,
+    "total_steps": 32,
+    "passed_steps": 32,
+    "scenario_pass": {
+      "S0": true,
+      "S1": true,
+      "S2": true,
+      "S3": true,
+      "S4": true,
+      "S5": true
+    }
+  }
+}
