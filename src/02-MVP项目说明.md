@@ -44,6 +44,6 @@
 
 ## 六、运行与部署
 
+- **线上体验**：<https://change-visa-collab.app.workbuddy.host/?sharecode=WW7S3LLLSD>（演示账号 `zhangsan / abc123456`，管理员；详细部署信息见 [`Test/08-上线部署网站地址.md`](../Test/08-上线部署网站地址.md)）
 - 本地：`pip install -r requirements.txt && uvicorn app.main:app --port 8000`（首个注册用户自动成为管理员）
-- 线上：见 [`Test/08-上线部署网站地址.md`](../Test/08-上线部署网站地址.md)
 - 演示账号：`zhangsan / abc123456`（启动自动播种）

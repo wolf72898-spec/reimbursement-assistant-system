@@ -3,6 +3,11 @@
 > 客户：远筑工程（合成业务场景）｜来源：FDE 训练中心实验室（project=construction-change）
 > 每个文件的前缀「任务N-」直接对应老师 docs 清单的第 N 条，无需进任何子文件夹。
 
+## 🌐 MVP 在线体验（以上交付物最终落地的可运行系统）
+
+> 🔗 **<https://change-visa-collab.app.workbuddy.host/?sharecode=WW7S3LLLSD>** ｜ 演示账号 `zhangsan / abc123456`（管理员）
+> 本目录任务 1-9 的产出（访谈 → 需求 → 设计 → 报价 → 上线手册）全部在这套系统中实现落地；部署信息详见 [`Test/08-上线部署网站地址.md`](../Test/08-上线部署网站地址.md)。
+
 ## 任务 1 · 六人访谈记录（md / json / csv）
 
 | 文件 | 说明 |
