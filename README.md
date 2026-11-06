@@ -137,8 +137,12 @@ app/
 │   └── llm/client.py        OpenAI 兼容适配（同步 / 流式 / Embedding）
 ├── rag/retriever.py         BM25 + 向量混合检索（RRF 融合），支持 PDF
 └── static/index.html        全中文单页应用（7 个视图，SSE 打字机）
+src/
+├── README.md                源码与资料归档导览（问答助手归档 / MVP 三大块地图）
+└── interviews/              六人访谈记录 md / json / csv（42 轮）
+tools/                       流程图与 docx 生成脚本
 docs/
-├── construction-change/     项目交付物 6 件套（业务挖掘 / 行业分析 / 流程图 / 报价 / 设计方案）
+├── construction-change/     项目交付物 11 件（业务挖掘 / 行业分析 / 流程图×2 / 报价 / 设计方案 / 访谈 / 需求定义 / 详细设计 / 报价测算）
 └── 01~08                    研发文档（需求评审 → 架构 → 原型 → Agent → 编排 → 上线检查）
 prototype/rag_prototype.py   阶段 1 单脚本 RAG 原型
 tests/                       冒烟测试 8 条 + 评测用例 30 条
@@ -146,27 +150,37 @@ tests/                       冒烟测试 8 条 + 评测用例 30 条
 
 ## 📚 文档导航
 
-**① 项目交付物**（[`docs/construction-change/`](docs/construction-change/)）
+**① 项目交付物**（[`docs/construction-change/`](docs/construction-change/)，共 11 件）
 
-| 交付物 | 说明 |
-| --- | --- |
-| 📄 [业务挖掘报告](docs/construction-change/01-业务挖掘报告.md) | 触发事件 · 5 项业务机会 · 指标基线 · 六角色利益相关者地图 |
-| 📊 [行业分析](docs/construction-change/02-行业分析.docx) | 政策背景 · 四大共性痛点 · 技术成熟度 · 对项目的启示（Word） |
-| 💰 [报价单](docs/construction-change/05-报价单.xlsx) | 首期试点 3 个月打包价 ¥286,000，9 项明细，公式自动合计（Excel） |
-| 📐 [设计方案](docs/construction-change/06-设计方案.docx) | 四层架构 · 五大模块 · AI 红线 · 九阶段实施计划（Word） |
+| # | 交付物 | 说明 |
+| --- | --- | --- |
+| 1 | 📄 [业务挖掘报告](docs/construction-change/01-业务挖掘报告.md) | 触发事件 · 5 项业务机会 · 指标基线 · 六角色利益相关者地图 |
+| 2 | 📊 [行业分析](docs/construction-change/02-行业分析.docx) | 政策背景 · 四大共性痛点 · 技术成熟度 · 对项目的启示（Word） |
+| 3 | 📐 [改造前流程图](docs/construction-change/03-current-process-flow.png) | **改造前**现状：8 步人工流程 + 6 处痛点 + 典型事件还原 + 访谈量化基线 |
+| 4 | 📐 [改造后流程图](docs/construction-change/04-digitized-process-flow.png) | **改造后**数智化：8 步协同流程 + 6 项收益，目标与验收标准同口径 |
+| 5 | 💰 [报价单](docs/construction-change/05-报价单.xlsx) | 首期试点 3 个月打包价 ¥286,000，9 项明细，公式自动合计（Excel） |
+| 6 | 📋 [设计方案](docs/construction-change/06-设计方案.docx) | 四层架构 · 五大模块 · AI 红线 · 九阶段实施计划（Word） |
+| 7 | 🎙️ [典型事件访谈记录](docs/construction-change/07-典型事件访谈记录.txt) | 3 轮访谈：口头指令→补签被拒，具体化+量化（txt） |
+| 8 | 📝 [典型事件访谈整理](docs/construction-change/08-典型事件访谈整理.docx) | AI 整理版：事件还原 · 影响量化 · 改进边界（Word） |
+| 9 | 🎯 [需求定义文档](docs/construction-change/09-需求定义文档.docx) | 8 痛点 → 6 项 AI 改造优先级 → 需求边界 → 追溯矩阵 → 验收清单（Word） |
+| 10 | 🏗️ [详细项目设计方案](docs/construction-change/10-详细项目设计方案.docx) | 总体架构 · 功能/数据/AI 设计 · 实施里程碑（Word） |
+| 11 | 💵 [报价与投入产出测算](docs/construction-change/11-报价与投入产出测算.docx) | 低/中/高三档报价 + 年化收益测算 + 回收期与 ROI（Word） |
+
+> 案例四份可核对资料：[远筑工程-一张变更单的三个版本-四份可核对资料.html](docs/construction-change/远筑工程-一张变更单的三个版本-四份可核对资料.html)
+> 六人访谈原始记录（md/json/csv）：[`src/interviews/`](src/interviews/)
 
 **② 流程图对比**
 
 <div align="center">
 
-| 现状 · 8 步人工流程（6 处痛点） | 数智化转型后 · 8 步协同流程（6 项收益） |
+| **改造前** · 8 步人工流程（6 处痛点 + 典型事件还原） | **改造后** · 8 步数智化流程（6 项收益 + 验收口径） |
 | :---: | :---: |
-| <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/03-current-process-flow.png" width="420" alt="现状流程图"/> | <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/04-digitized-process-flow.png" width="420" alt="转型后流程图"/> |
+| <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/03-current-process-flow.png" width="420" alt="改造前流程图"/> | <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/04-digitized-process-flow.png" width="420" alt="改造后流程图"/> |
 | 人工驱动 · 版本失控 · 事后补救 | 数据驱动 + AI 辅助 + 人工把关 |
 
 </div>
 
-> 完整大图：[现状流程图](docs/construction-change/03-current-process-flow.png) · [转型后流程图](docs/construction-change/04-digitized-process-flow.png)
+> 完整大图：[改造前流程图](docs/construction-change/03-current-process-flow.png) · [改造后流程图](docs/construction-change/04-digitized-process-flow.png)
 
 **③ 研发文档**
 
@@ -202,7 +216,7 @@ python -c "import json;print(len(json.load(open('tests/evaluation_cases.json',en
 ✅ 工程变更业务模块（台账 / 版本 / 交底 / 签证 / 看板，7 页面可运行）
 ✅ 领域智能体（10 工具 + Harness 5 轮 + HITL 人工闸门 + 决策日志）
 ✅ 企业管理后台（知识库 / 提示词 / 审计）
-✅ 项目交付物 6 件套 + 评测用例 30 条 + 上线检查 25 项
+✅ 项目交付物 11 件 + 评测用例 30 条 + 上线检查 25 项
 ⬜ 图纸差异 AI 比对（BIM / PDF 叠图）
 ⬜ 工程量清单自动提取与造价联动
 ⬜ 多项目租户隔离与移动端签收

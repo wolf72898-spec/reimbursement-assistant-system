@@ -1,7 +1,0 @@
-request_id: docx-design-20261106091523
-entry_type: full_pipeline
-current_stage: 2
-note: "批量任务：10-详细项目设计方案 + 11-报价与投入产出测算，S1创作与S2排版合并执行（用户要求提速），门禁与S3转换照常"
-output_docx_paths:
-  - docs/construction-change/10-详细项目设计方案.docx
-  - docs/construction-change/11-报价与投入产出测算.docx

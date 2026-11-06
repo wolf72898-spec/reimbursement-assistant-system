@@ -19,3 +19,5 @@ storage/policies/*
 .vscode/
 .DS_Store
 Thumbs.db
+output/
+*.db
