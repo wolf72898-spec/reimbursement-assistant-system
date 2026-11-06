@@ -68,7 +68,7 @@ doc12 = f"""
         <td><span class="card-value">{SUM['passed_steps']} 步</span></td>
         <td><span class="card-value">100%</span><br><span class="card-trend">五类场景全部通过</span></td>
       </tr></tbody></table></div>
-      <div class="summary-body">本方案覆盖正常、边界、对抗、权限、故障五类场景共 {SUM['total_steps']} 个可量化测试步骤，全部基于真实 HTTP 请求执行并逐步留痕（请求 / 响应 / 判定）。执行结果 {SUM['passed_steps']}/{SUM['total_steps']} 步通过，五类场景 100% 通过；每类场景另附可视化测试过程图（docs/construction-change/evidence/）与单场景测试报告 docx。</div>
+      <div class="summary-body">本方案覆盖正常、边界、对抗、权限、故障五类场景共 {SUM['total_steps']} 个可量化测试步骤，全部基于真实 HTTP 请求执行并逐步留痕（请求 / 响应 / 判定）。执行结果 {SUM['passed_steps']}/{SUM['total_steps']} 步通过，五类场景 100% 通过；每类场景另附可视化测试过程图（Test/evidence/）与单场景测试报告 docx。</div>
     </div>
     <h2 class="section-header" id="s1">一、测试范围与策略</h2>
     <p class="body-para">被测对象为工程变更与签证协同 MVP 的全部业务接口与降级链路。策略：以 API 端到端测试为主，每个用例断言精确到 HTTP 状态码与业务状态字段；正常场景验证业务闭环，异常场景验证服务端强制约束（状态机、权限、参数校验、降级）。</p>
@@ -94,7 +94,7 @@ doc12 = f"""
     <p class="list-para">- 冒烟级：pytest 冒烟 8 条全部通过；</p>
     <p class="list-para">- 安全级：对抗与权限场景不得出现任何 5xx（服务端异常暴露）；降级链路必须给出明确提示而非静默失败。</p>
     <h2 class="section-header" id="s5">五、执行结果汇总</h2>
-    <p class="body-para">执行时间 {TODAY}，执行结果：{SUM['passed_steps']}/{SUM['total_steps']} 步全部通过，五类场景 100%。可视化过程图（每场景一张，含每步请求 / 响应 / 判定）见 docs/construction-change/evidence/ 目录：S1-正常场景.png、S2-边界场景.png、S3-对抗场景.png、S4-权限场景.png、S5-故障场景.png；单场景详细报告见 13～17 号文档。</p>
+    <p class="body-para">执行时间 {TODAY}，执行结果：{SUM['passed_steps']}/{SUM['total_steps']} 步全部通过，五类场景 100%。可视化过程图（每场景一张，含每步请求 / 响应 / 判定）见 Test/evidence/ 目录：S1-正常场景.png、S2-边界场景.png、S3-对抗场景.png、S4-权限场景.png、S5-故障场景.png；单场景详细报告见 03～07 号场景 docx。</p>
     <h2 class="section-header" id="s6">六、缺陷记录与改进项</h2>
     <table class="data-table"><thead><tr><th style="width:10%">编号</th><th style="width:40%">发现</th><th>处理</th></tr></thead><tbody>
       <tr><td>D-01</td><td>零金额签证入口即被服务端拒绝（400），符合预期但需与业务确认零金额场景是否合法存在</td><td>维持现状，人工核价兜底；如需支持零金额变更需评审</td></tr>
@@ -103,10 +103,10 @@ doc12 = f"""
     </tbody></table>
   </section>
 """
-io.open(f"{RID_DIR}/12-测试方案.html", "w", encoding="utf-8").write(page("MVP 系统测试方案", doc12))
+io.open(f"{RID_DIR}/02-测试方案.docx.html", "w", encoding="utf-8").write(page("MVP 系统测试方案", doc12))
 
 # ---------- 13~17 场景报告 ----------
-FILE_NO = {"S1": 13, "S2": 14, "S3": 15, "S4": 16, "S5": 17}
+FILE_NO = {"S1": "03", "S2": "04", "S3": "05", "S4": "06", "S5": "07"}
 for sc in results["scenarios"]:
     sid = sc["id"]
     if sid == "S0":
@@ -151,7 +151,7 @@ for sc in results["scenarios"]:
     <h2 class="section-header" id="s2">二、测试过程记录（逐步留痕）</h2>
     <table class="data-table"><thead><tr><th style="width:6%">#</th><th style="width:22%">操作</th><th style="width:18%">请求</th><th style="width:10%">响应</th><th style="width:10%">判定</th><th>说明 / 服务端行为</th></tr></thead><tbody>{rows}</tbody></table>
     <h2 class="section-header" id="s3">三、过程可视化说明</h2>
-    <p class="body-para">本场景的可视化过程图（每步操作 → 接口 → 响应码 → 判定，绿=通过 红=失败）随仓库交付：docs/construction-change/evidence/{sid}-{tag}.png。图中每一步与上表逐行对应，可作为评审与审计的过程证据。</p>
+    <p class="body-para">本场景的可视化过程图（每步操作 → 接口 → 响应码 → 判定，绿=通过 红=失败）随仓库交付：Test/evidence/{sid}-{tag}.png。图中每一步与上表逐行对应，可作为评审与审计的过程证据。</p>
     <h2 class="section-header" id="s4">四、结论</h2>
     <p class="body-para">{tag}全部步骤通过，服务端行为符合《需求定义文档》验收标准与《上线检查清单》对应条目：参数校验、状态机强制、权限拦截、降级兜底均有效。该场景纳入回归基线，任何接口变更后须重跑（tools/run_scenarios.py）。</p>
   </section>
@@ -216,13 +216,13 @@ doc18 = f"""
     <p class="list-para">- <strong>上线门禁：</strong>发布前重跑 pytest 冒烟 8 条 + 五类场景 32 步（tools/run_scenarios.py），任一失败不得发布。</p>
     <h2 class="section-header" id="s6">六、交付物清单与验收索引</h2>
     <table class="data-table"><thead><tr><th style="width:30%">交付物</th><th>位置 / 编号</th></tr></thead><tbody>
-      <tr><td>测试方案（md + docx）</td><td>docs/construction-change/12-测试方案.md 与 .docx</td></tr>
-      <tr><td>五份场景测试报告（docx，有过程有图）</td><td>13～17 号文档；过程图 docs/construction-change/evidence/S1～S5.png</td></tr>
+      <tr><td>测试方案（md + docx）</td><td>Test/01-测试方案.md 与 Test/02-测试方案.docx</td></tr>
+      <tr><td>五份场景测试报告（docx，有过程有图）</td><td>03～07 号场景 docx；过程图 Test/evidence/S1～S5.png</td></tr>
       <tr><td>测试证据原始留痕</td><td>tests/evidence/results.json（32 步请求 / 响应 / 判定）</td></tr>
       <tr><td>上线部署地址</td><td>本手册第一章（Test 第 3 项）</td></tr>
       <tr><td>需求定义 / 详细设计 / 报价测算</td><td>09 / 10 / 11 号文档</td></tr>
     </tbody></table>
   </section>
 """
-io.open(f"{RID_DIR}/18-上线交付运行手册.html", "w", encoding="utf-8").write(page("上线部署与交付运行手册", doc18))
+io.open(f"{RID_DIR}/13-上线交付运行手册.docx.html", "w", encoding="utf-8").write(page("上线部署与交付运行手册", doc18))
 print("7 html written to", RID_DIR)

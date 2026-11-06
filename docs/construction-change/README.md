@@ -66,20 +66,16 @@
 | --- | --- |
 | [13-上线交付运行手册.docx](./13-上线交付运行手册.docx) | **上线部署地址**、演示账号、4 处人工确认点、巡检与回滚 |
 
-## Test · 测试交付物
+## Test · 测试交付物（已归档至仓库根目录 [`Test/`](../../Test/README.md)）
 
-| 文件 | 说明 |
-| --- | --- |
-| [20-测试方案.md](./20-测试方案.md) | （T1-1）五类场景 32 步量化测试方案（md 版） |
-| [21-测试方案.docx](./21-测试方案.docx) | （T1-2）同内容 Word 版 |
-| [22-正常场景测试.docx](./22-正常场景测试.docx) | （T2）正常场景 9 步可视化过程，图：[evidence/S1-正常场景.png](./evidence/S1-正常场景.png) |
-| [23-边界场景测试.docx](./23-边界场景测试.docx) | （T2）边界场景 7 步，图：[evidence/S2-边界场景.png](./evidence/S2-边界场景.png) |
-| [24-对抗场景测试.docx](./24-对抗场景测试.docx) | （T2）对抗场景 6 步，图：[evidence/S3-对抗场景.png](./evidence/S3-对抗场景.png) |
-| [25-权限场景测试.docx](./25-权限场景测试.docx) | （T2）权限场景 5 步，图：[evidence/S4-权限场景.png](./evidence/S4-权限场景.png) |
-| [26-故障场景测试.docx](./26-故障场景测试.docx) | （T2）故障场景 5 步，图：[evidence/S5-故障场景.png](./evidence/S5-故障场景.png) |
-| **T3 部署地址** | **https://change-visa-collab.app.workbuddy.host/?sharecode=WW7S3LLLSD**（见运行手册第一章） |
+| # | 文件 | 说明 |
+| --- | --- | --- |
+| T1 | [Test/01-测试方案.md](../../Test/01-测试方案.md) · [Test/02-测试方案.docx](../../Test/02-测试方案.docx) | 五类场景 32 步量化测试方案（md + docx 双版本） |
+| T2 | Test/03~07-场景测试.docx（正常/边界/对抗/权限/故障） | 每场景一份可视化测试过程报告（有图有过程），过程图见 `Test/evidence/` |
+| T3 | [Test/08-上线部署网站地址.md](../../Test/08-上线部署网站地址.md) · [docx](../../Test/08-上线部署网站地址.docx) | MVP 系统上线部署网站地址 + 演示账号 + 部署信息 |
 
-> 测试原始留痕：`tests/evidence/results.json`；回归脚本：`tools/run_scenarios.py`；MVP 源码导览：[`src/README.md`](../../src/README.md)（工程架构 / Agent 框架 / 知识库 / ≥3 处人工确认点）。
+> 测试执行结果 **32/32 步全部通过**；原始留痕：`tests/evidence/results.json`；回归脚本：`tools/run_scenarios.py`。
+> src 交付物（问答助手归档 / MVP 项目说明）：见仓库根目录 [`src/`](../../src/README.md)。
 
 ## 附录材料（90+）
 

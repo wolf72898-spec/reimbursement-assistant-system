@@ -150,15 +150,15 @@ app/
 │   └── llm/client.py        OpenAI 兼容适配（同步 / 流式 / Embedding）
 ├── rag/retriever.py         BM25 + 向量混合检索（RRF 融合），支持 PDF
 └── static/index.html        全中文单页应用（7 个视图，SSE 打字机）
-src/
-├── README.md                源码与资料归档导览（问答助手归档 / MVP 三大块地图）
-└── interviews -> docs/construction-change/01-六人访谈记录/（六人访谈 42 轮 md/json/csv）
-tools/                       流程图与 docx 生成脚本
+src/                        「src」交付物：问答助手归档 + MVP 项目说明（md+docx，含 4 处人工确认点）
+└── README.md · 01-问答助手归档说明.md · 02-MVP项目说明.md/.docx
+Test/                       「Test」交付物：量化测试方案（md+docx）· 五类场景可视化报告（docx）· 部署地址文档 · 过程图 evidence/
+tools/                      流程图 / docx 生成 / 场景测试脚本
 docs/
-├── construction-change/     交付物按任务1-9+Test顺序编排（访谈 / 简报 / 行业分析 / 流程图 / 需求定义 / 设计 / 报价 / 运行手册 / 测试）
+├── construction-change/     任务 1-9 交付物（访谈 / 简报 / 行业分析 / 流程图 / 需求定义 / 设计 / 报价 / 运行手册），编号即任务号
 └── 01~08                    研发文档（需求评审 → 架构 → 原型 → Agent → 编排 → 上线检查）
 prototype/rag_prototype.py   阶段 1 单脚本 RAG 原型
-tests/                       冒烟测试 8 条 + 评测用例 30 条
+tests/                       冒烟测试 8 条 + 评测用例 30 条 + 场景测试留痕 evidence/
 ```
 
 ## 📚 文档导航
@@ -176,8 +176,10 @@ tests/                       冒烟测试 8 条 + 评测用例 30 条
 | 7 | 详细项目设计方案 docx | [`10-详细项目设计方案.docx`](docs/construction-change/10-详细项目设计方案.docx)：四层架构 · 功能/数据/AI 设计 · 四里程碑 |
 | 8 | 报价（低/中/高）与投入产出 docx | [`11-报价与投入产出测算.docx`](docs/construction-change/11-报价与投入产出测算.docx)（+ [`12-报价单.xlsx`](docs/construction-change/12-报价单.xlsx)） |
 | 9 | 上线交付运行手册 docx | [`13-上线交付运行手册.docx`](docs/construction-change/13-上线交付运行手册.docx)：部署地址 · 演示账号 · 4 处人工确认点 · 回滚 |
+| src | 问答助手归档 + MVP 项目说明 | [`src/README.md`](src/README.md) · [`01-问答助手归档说明.md`](src/01-问答助手归档说明.md) · [`02-MVP项目说明.md`](src/02-MVP项目说明.md)/[`.docx`](src/02-MVP项目说明.docx)（工程架构 · Agent 框架 · 知识库 · 4 处人工确认点） |
+| Test | 测试方案 + 5 场景报告 + 部署地址 | [`Test/README.md`](Test/README.md)：量化方案 md+docx · 五类场景可视化 docx · [`08-上线部署网站地址.md`](Test/08-上线部署网站地址.md) |
 
-**② 流程图对比****② 流程图对比**
+**② 流程图对比**
 
 <div align="center">
 
@@ -210,7 +212,7 @@ python tools/run_scenarios.py               # 五类场景端到端 32 步（需
 python -c "import json;print(len(json.load(open('tests/evaluation_cases.json',encoding='utf-8'))))"   # 30
 ```
 
-场景测试方案与可视化报告：[`docs/construction-change/20-测试方案.md`](docs/construction-change/20-测试方案.md)（md+docx）与 22~26 号场景 docx；过程图见 [`docs/construction-change/evidence/`](docs/construction-change/evidence/)。
+场景测试方案与可视化报告：[`Test/01-测试方案.md`](Test/01-测试方案.md)（md+docx）与 [`Test/03~07-场景测试.docx`](Test/README.md)；过程图见 [`Test/evidence/`](Test/evidence/)；部署地址文档 [`Test/08-上线部署网站地址.md`](Test/08-上线部署网站地址.md)。
 
 ## ⚙️ 环境变量
 
