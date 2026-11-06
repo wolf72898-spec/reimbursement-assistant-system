@@ -16,6 +16,18 @@
 
 ---
 
+## 🌐 MVP 在线体验（点击即用，无需部署）
+
+> **老师/评审请从这里开始**：打开即用演示账号一键登录，Test 清单第 3 项「上线部署网站地址」即为本系统。
+
+| 项目 | 内容 |
+| --- | --- |
+| 🔗 **网站地址** | **<https://change-visa-collab.app.workbuddy.host/?sharecode=WW7S3LLLSD>** |
+| 👤 **演示账号** | `zhangsan` ／ 密码 `abc123456`（管理员，点登录页「一键体验」自动填入） |
+| 📄 **地址文档** | [`Test/08-上线部署网站地址.md`](Test/08-上线部署网站地址.md)（md + docx 双版本） |
+
+---
+
 ## 📖 一句话说明
 
 > 现场拿到旧图施工、新图没人交底、签证单三个版本对不上——这三个"扯皮"根源，本系统用**统一变更台账 + 定向交底签收 + 签证同源 + AI 助手**一次性收口。
@@ -89,6 +101,7 @@ AI：[query_changes] → [get_change_detail] → [draft_visa]
 ## 🌐 在线演示
 
 **MVP 系统已上线部署**：<https://change-visa-collab.app.workbuddy.host/?sharecode=WW7S3LLLSD>
+演示账号 `zhangsan / abc123456`（管理员）· 详细部署信息见 [`Test/08-上线部署网站地址.md`](Test/08-上线部署网站地址.md)。
 
 ## 🚀 本地快速开始
 
@@ -154,29 +167,34 @@ src/                        「src」交付物：问答助手归档 + MVP 项目
 └── README.md · 01-问答助手归档说明.md · 02-MVP项目说明.md/.docx
 Test/                       「Test」交付物：量化测试方案（md+docx）· 五类场景可视化报告（docx）· 部署地址文档 · 过程图 evidence/
 tools/                      流程图 / docx 生成 / 场景测试脚本
-docs/
-├── construction-change/     任务 1-9 交付物（访谈 / 简报 / 行业分析 / 流程图 / 需求定义 / 设计 / 报价 / 运行手册），编号即任务号
-└── 01~08                    研发文档（需求评审 → 架构 → 原型 → Agent → 编排 → 上线检查）
+docs/                        「docs」交付物：任务 1-9 平铺（文件名前缀任务N- 即老师清单编号）+ 附录 A/B/C
+├── 任务1-六人访谈记录/      md / json / csv（42 轮访谈）
+├── 任务2-项目简报资料/      简报 4 件
+├── 任务3~9-*.txt/.docx/.png/.xlsx   典型事件 / 行业分析 / 流程图 / 需求定义 / 设计 / 报价 / 运行手册
+└── 附录A/B/C                设计初版 / 业务挖掘报告 / 案例核对资料
+src/                         「src」交付物：问答助手归档 + MVP 项目说明（md+docx：4 处人工确认点 / 2 类权限）
+├── README.md · 01-问答助手归档说明.md · 02-MVP项目说明.md/.docx
+└── 设计文档/                研发文档 01~08（需求评审 → 架构 → 原型 → Agent → 编排 → 上线检查）
 prototype/rag_prototype.py   阶段 1 单脚本 RAG 原型
 tests/                       冒烟测试 8 条 + 评测用例 30 条 + 场景测试留痕 evidence/
 ```
 
 ## 📚 文档导航
 
-**① 项目交付物**（按任务 1-9 顺序编排，索引：[`docs/construction-change/README.md`](docs/construction-change/README.md)）
+**① 项目交付物**（老师清单 docs 1-9，全部平铺在 [`docs/`](docs/README.md)，文件名前缀「任务N-」即清单编号）
 
 | 任务 | 交付物 | 文件 |
 | --- | --- | --- |
-| 1 | 六人访谈记录 md/json/csv | [`01-六人访谈记录/`](docs/construction-change/01-六人访谈记录/)（42 轮全量数据） |
-| 2 | 项目基本简报（4 文件） | [`02-项目简报资料/`](docs/construction-change/02-项目简报资料/)：案例背景 · 需求清单 · 方法框架 · 交付衔接 |
-| 3 | 典型事件访谈 txt + 整理 docx | [`03-典型事件访谈记录.txt`](docs/construction-change/03-典型事件访谈记录.txt) · [`04-典型事件访谈整理.docx`](docs/construction-change/04-典型事件访谈整理.docx) |
-| 4 | 行业分析 md + docx | [`05-行业分析.md`](docs/construction-change/05-行业分析.md) · [`06-行业分析.docx`](docs/construction-change/06-行业分析.docx) |
-| 5 | 两份流程图（改造前/后） | [`07-流程图-改造前.png`](docs/construction-change/07-流程图-改造前.png) · [`08-流程图-改造后.png`](docs/construction-change/08-流程图-改造后.png) |
-| 6 | 需求定义文档 docx | [`09-需求定义文档.docx`](docs/construction-change/09-需求定义文档.docx)：8 痛点 → 6 项 AI 改造优先级 → 边界规格 → 追溯矩阵 → 验收清单 |
-| 7 | 详细项目设计方案 docx | [`10-详细项目设计方案.docx`](docs/construction-change/10-详细项目设计方案.docx)：四层架构 · 功能/数据/AI 设计 · 四里程碑 |
-| 8 | 报价（低/中/高）与投入产出 docx | [`11-报价与投入产出测算.docx`](docs/construction-change/11-报价与投入产出测算.docx)（+ [`12-报价单.xlsx`](docs/construction-change/12-报价单.xlsx)） |
-| 9 | 上线交付运行手册 docx | [`13-上线交付运行手册.docx`](docs/construction-change/13-上线交付运行手册.docx)：部署地址 · 演示账号 · 4 处人工确认点 · 回滚 |
-| src | 问答助手归档 + MVP 项目说明 | [`src/README.md`](src/README.md) · [`01-问答助手归档说明.md`](src/01-问答助手归档说明.md) · [`02-MVP项目说明.md`](src/02-MVP项目说明.md)/[`.docx`](src/02-MVP项目说明.docx)（工程架构 · Agent 框架 · 知识库 · 4 处人工确认点） |
+| 1 | 六人访谈记录 md/json/csv | [`任务1-六人访谈记录/`](docs/任务1-六人访谈记录/)（42 轮全量数据） |
+| 2 | 项目基本简报（4 文件） | [`任务2-项目简报资料/`](docs/任务2-项目简报资料/)：案例背景 · 需求清单 · 方法框架 · 交付衔接 |
+| 3 | 典型事件访谈 txt + 整理 docx | [`任务3-典型事件访谈记录.txt`](docs/任务3-典型事件访谈记录.txt) · [`任务3-典型事件访谈整理.docx`](docs/任务3-典型事件访谈整理.docx) |
+| 4 | 行业分析 md + docx | [`任务4-行业分析.md`](docs/任务4-行业分析.md) · [`任务4-行业分析.docx`](docs/任务4-行业分析.docx) |
+| 5 | 两份流程图（改造前/后） | [`任务5-流程图-改造前.png`](docs/任务5-流程图-改造前.png) · [`任务5-流程图-改造后.png`](docs/任务5-流程图-改造后.png) |
+| 6 | 需求定义文档 docx | [`任务6-需求定义文档.docx`](docs/任务6-需求定义文档.docx)：8 痛点 → 6 项 AI 改造优先级 → 边界规格 → 追溯矩阵 → 验收清单 |
+| 7 | 详细项目设计方案 docx | [`任务7-详细项目设计方案.docx`](docs/任务7-详细项目设计方案.docx)：四层架构 · 功能/数据/AI 设计 · 四里程碑 |
+| 8 | 报价（低/中/高）与投入产出 docx | [`任务8-报价与投入产出测算.docx`](docs/任务8-报价与投入产出测算.docx)（+ [`任务8-报价单.xlsx`](docs/任务8-报价单.xlsx)） |
+| 9 | 上线交付运行手册 docx | [`任务9-上线交付运行手册.docx`](docs/任务9-上线交付运行手册.docx)：部署地址 · 演示账号 · 4 处人工确认点 · 回滚 |
+| src | 问答助手归档 + MVP 项目说明 | [`src/README.md`](src/README.md) · [`01-问答助手归档说明.md`](src/01-问答助手归档说明.md) · [`02-MVP项目说明.md`](src/02-MVP项目说明.md)/[`.docx`](src/02-MVP项目说明.docx)（工程架构 · Agent 框架 · 知识库 · 4 处人工确认点 · 2 类权限） |
 | Test | 测试方案 + 5 场景报告 + 部署地址 | [`Test/README.md`](Test/README.md)：量化方案 md+docx · 五类场景可视化 docx · [`08-上线部署网站地址.md`](Test/08-上线部署网站地址.md) |
 
 **② 流程图对比**
@@ -185,24 +203,24 @@ tests/                       冒烟测试 8 条 + 评测用例 30 条 + 场景�
 
 | **改造前** · 8 步人工流程（6 处痛点 + 典型事件还原） | **改造后** · 8 步数智化流程（6 项收益 + 验收口径） |
 | :---: | :---: |
-| <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/07-流程图-改造前.png" width="420" alt="改造前流程图"/> | <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/08-流程图-改造后.png" width="420" alt="改造后流程图"/> |
+| <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/任务5-流程图-改造前.png" width="420" alt="改造前流程图"/> | <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/任务5-流程图-改造后.png" width="420" alt="改造后流程图"/> |
 | 人工驱动 · 版本失控 · 事后补救 | 数据驱动 + AI 辅助 + 人工把关 |
 
 </div>
 
-> 完整大图：[改造前流程图](docs/construction-change/07-流程图-改造前.png) · [改造后流程图](docs/construction-change/08-流程图-改造后.png)
+> 完整大图：[改造前流程图](docs/任务5-流程图-改造前.png) · [改造后流程图](docs/任务5-流程图-改造后.png)
 
-**③ 研发文档**
+**③ 研发文档**（已归档至 [`src/设计文档/`](src/设计文档/)）
 
 | 文档 | 说明 |
 | --- | --- |
-| [需求评审十问](docs/01-需求评审十问与决策.md) | 10 个关键问题与决策记录 |
-| [技术架构方案](docs/02-技术架构方案.md) | 四层架构 · 六张表 · 首周验证目标 |
-| [裸问答原型](docs/03-裸问答原型说明.md) | 500 字切片 + 混合检索 + LLM 封装 |
-| [Agent 工具与调用约束](docs/04-Agent工具与调用约束设计.md) | 工具契约与调用顺序约束 |
-| [管理后台实现](docs/05-管理后台实现说明.md) | JWT 双角色 · 知识库 · 提示词 · 审计 |
-| [Agent 与编排实现](docs/06-Agent实现说明.md) · [07-Agent编排](docs/07-Agent编排实现说明.md) | Harness 循环 · 决策日志 · HITL 轨迹 |
-| [上线检查清单](docs/08-上线检查清单.md) | 5 维度 × 5 项，14 项必过 + Go/No-Go 规则 |
+| [需求评审十问](src/设计文档/01-需求评审十问与决策.md) | 10 个关键问题与决策记录 |
+| [技术架构方案](src/设计文档/02-技术架构方案.md) | 四层架构 · 六张表 · 首周验证目标 |
+| [裸问答原型](src/设计文档/03-裸问答原型说明.md) | 500 字切片 + 混合检索 + LLM 封装 |
+| [Agent 工具与调用约束](src/设计文档/04-Agent工具与调用约束设计.md) | 工具契约与调用顺序约束 |
+| [管理后台实现](src/设计文档/05-管理后台实现说明.md) | JWT 双角色 · 知识库 · 提示词 · 审计 |
+| [Agent 与编排实现](src/设计文档/06-Agent实现说明.md) · [07-Agent编排](src/设计文档/07-Agent编排实现说明.md) | Harness 循环 · 决策日志 · HITL 轨迹 |
+| [上线检查清单](src/设计文档/08-上线检查清单.md) | 5 维度 × 5 项，14 项必过 + Go/No-Go 规则 |
 
 ## 🧪 测试
 

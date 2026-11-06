@@ -68,6 +68,6 @@ ax.text(50, 5.4, "（数字化节点依据《需求定义文档》R1-R6 改造�
         ha="center", va="center", fontsize=9, color="#999999")
 
 plt.tight_layout()
-plt.savefig("docs/construction-change/04-digitized-process-flow.png",
+plt.savefig("docs/任务5-流程图-改造后.png",
             bbox_inches="tight", facecolor="white", dpi=110)
 print("saved 04")

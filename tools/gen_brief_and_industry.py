@@ -5,7 +5,7 @@ import json, io, zipfile, re, os
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ---------- 05-行业分析.md ----------
-z = zipfile.ZipFile("docs/construction-change/06-行业分析.docx")
+z = zipfile.ZipFile("docs/任务4-行业分析.docx")
 xml = z.read("word/document.xml").decode("utf-8")
 # 按段落切分
 paras = []
@@ -23,12 +23,12 @@ for t in paras:
     else:
         md.append(t)
         md.append("")
-io.open("docs/construction-change/05-行业分析.md", "w", encoding="utf-8").write("\n".join(md))
+io.open("docs/任务4-行业分析.md", "w", encoding="utf-8").write("\n".join(md))
 print("05-行业分析.md", len("\n".join(md)), "chars,", len(paras), "paras")
 
 # ---------- 02-项目简报资料 ----------
-os.makedirs("docs/construction-change/02-项目简报资料", exist_ok=True)
-d = json.load(io.open("src/interviews/discovery-report.json", encoding="utf-8")) if os.path.exists("src/interviews/discovery-report.json") else json.load(io.open("docs/construction-change/01-六人访谈记录/discovery-report.json", encoding="utf-8"))
+os.makedirs("docs/任务2-项目简报资料", exist_ok=True)
+d = json.load(io.open("src/interviews/discovery-report.json", encoding="utf-8")) if os.path.exists("src/interviews/discovery-report.json") else json.load(io.open("docs/任务1-六人访谈记录/discovery-report.json", encoding="utf-8"))
 
 def dump(v):
     if isinstance(v, str):
@@ -60,7 +60,7 @@ for i, r in enumerate(d.get("requirements", []), 1):
     for ev in r.get("evidence", []):
         f2.append(f"- 证据 [{ev.get('id', '')}]：{ev.get('text', '')}")
     f2.append("")
-io.open("docs/construction-change/02-项目简报资料/02-需求清单与访谈事实.md", "w", encoding="utf-8").write("\n".join(f2))
+io.open("docs/任务2-项目简报资料/02-需求清单与访谈事实.md", "w", encoding="utf-8").write("\n".join(f2))
 
 f3 = f"""# 项目简报 ③：方法框架
 
@@ -98,7 +98,7 @@ f4 = f"""# 项目简报 ④：交付衔接与公开来源
 
 {d.get('note', '')}
 """
-io.open("docs/construction-change/02-项目简报资料/01-案例背景与开场.md", "w", encoding="utf-8").write(f1)
-io.open("docs/construction-change/02-项目简报资料/03-方法框架与分析.md", "w", encoding="utf-8").write(f3)
-io.open("docs/construction-change/02-项目简报资料/04-交付衔接与来源.md", "w", encoding="utf-8").write(f4)
+io.open("docs/任务2-项目简报资料/01-案例背景与开场.md", "w", encoding="utf-8").write(f1)
+io.open("docs/任务2-项目简报资料/03-方法框架与分析.md", "w", encoding="utf-8").write(f3)
+io.open("docs/任务2-项目简报资料/04-交付衔接与来源.md", "w", encoding="utf-8").write(f4)
 print("4 briefing files written")

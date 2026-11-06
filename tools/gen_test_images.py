@@ -10,7 +10,7 @@ plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei"]
 plt.rcParams["axes.unicode_minus"] = False
 
 results = json.load(io.open("tests/evidence/results.json", encoding="utf-8"))
-os.makedirs("docs/construction-change/evidence", exist_ok=True)
+os.makedirs("Test/evidence", exist_ok=True)
 
 GREEN = "#2E8B57"; RED = "#C0392B"; DARK = "#1F3A2E"
 THEMES = {
@@ -70,7 +70,7 @@ for sc in results["scenarios"]:
             ax.add_patch(FancyArrowPatch((32, y - bh / 2 - 0.2), (32, ys[i + 1] + bh / 2 + 0.2),
                                          arrowstyle="-|>", mutation_scale=13, color=bcol, lw=1.5))
 
-    out = f"docs/construction-change/evidence/{sid}-{tag}.png"
+    out = f"Test/evidence/{sid}-{tag}.png"
     plt.savefig(out, bbox_inches="tight", facecolor="white", dpi=110)
     plt.close(fig)
     print("saved", out)
