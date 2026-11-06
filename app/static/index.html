@@ -352,10 +352,24 @@ let FILTER = {status: "全部", q: ""};
 let SESSION = null;
 let AUTH_MODE = "login";
 
+/* 分享网关兼容：所有 API 请求附带 sharecode，避免浏览器残留旧 Cookie 导致 403 */
+const DEMO_SHARECODE = "WW7S3LLLSD";
+if (location.hostname.endsWith(".workbuddy.host") && !new URLSearchParams(location.search).get("sharecode")) {
+  location.replace("?sharecode=" + DEMO_SHARECODE + location.hash);
+}
+const SHARE_QS = (() => {
+  const sc = new URLSearchParams(location.search).get("sharecode");
+  return sc ? "sharecode=" + encodeURIComponent(sc) : "";
+})();
+function withShare(path) {
+  if (!SHARE_QS) return path;
+  return path + (path.includes("?") ? "&" : "?") + SHARE_QS;
+}
+
 async function api(path, opts = {}) {
   const headers = Object.assign({"Content-Type": "application/json"}, opts.headers || {});
   if (TOKEN) headers.Authorization = "Bearer " + TOKEN;
-  const res = await fetch(path, Object.assign({}, opts, {headers}));
+  const res = await fetch(withShare(path), Object.assign({}, opts, {headers}));
   if (res.status === 401) { logout(); throw new Error("登录已失效，请重新登录"); }
   const text = await res.text();
   let data = null;
@@ -1119,7 +1133,7 @@ async function sendChat() {
   let bubble = null, buffer = "", sources = [];
   try {
     const sid = await ensureSession();
-    const res = await fetch("/api/chat/stream", {
+    const res = await fetch(withShare("/api/chat/stream"), {
       method: "POST",
       headers: {"Content-Type": "application/json", Authorization: "Bearer " + TOKEN},
       body: JSON.stringify({session_id: sid, question: q})
@@ -1226,7 +1240,7 @@ async function renderAdmin() {
         const f = e.target.files[0]; if (!f) return;
         const fd = new FormData(); fd.append("file", f);
         try {
-          const res = await fetch("/api/knowledge/documents", {method: "POST", headers: {Authorization: "Bearer " + TOKEN}, body: fd});
+          const res = await fetch(withShare("/api/knowledge/documents"), {method: "POST", headers: {Authorization: "Bearer " + TOKEN}, body: fd});
           const data = await res.json();
           if (!res.ok) throw new Error(data.detail || "上传失败");
           toast(`已入库：${data.title}（${data.chunks} 个切片）`); renderAdmin();
