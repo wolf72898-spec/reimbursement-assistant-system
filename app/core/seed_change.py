@@ -9,7 +9,24 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import hash_password
 from app.models.change import Briefing, ChangeOrder, ChangeVersion, Project, VisaOrder
+from app.models.user import User
+
+
+async def seed_demo_user(db: AsyncSession) -> None:
+    """幂等：确保演示账号 zhangsan / abc123456（管理员）存在，供一键体验登录"""
+    exists = await db.scalar(select(func.count()).select_from(User).where(User.username == "zhangsan"))
+    if exists:
+        return
+    db.add(User(
+        username="zhangsan",
+        password_hash=hash_password("abc123456"),
+        role="admin",
+        department="工程部",
+        is_active=True,
+    ))
+    await db.commit()
 
 
 async def seed_changes(db: AsyncSession) -> None:

@@ -10,7 +10,7 @@ from app.agent.loop import seed_prompts
 from app.api import admin, auth, chat, construction, expenses, knowledge
 from app.core.config import settings
 from app.core.db import init_db
-from app.core.seed_change import seed_changes
+from app.core.seed_change import seed_changes, seed_demo_user
 
 
 @asynccontextmanager
@@ -21,6 +21,7 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as db:
         await seed_prompts(db)
         await seed_changes(db)
+        await seed_demo_user(db)
     yield
 
 
