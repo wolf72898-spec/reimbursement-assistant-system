@@ -41,8 +41,11 @@ app.include_router(admin.router)
 
 @app.get("/", include_in_schema=False)
 async def root():
-    """根路径返回中文聊天界面（员工与管理员共用）"""
-    return FileResponse(Path(__file__).parent / "static" / "index.html")
+    """根路径返回中文聊天界面（员工与管理员共用）；no-store 防止浏览器缓存旧版页面"""
+    return FileResponse(
+        Path(__file__).parent / "static" / "index.html",
+        headers={"Cache-Control": "no-store, must-revalidate"},
+    )
 
 
 @app.get("/health", tags=["meta"])

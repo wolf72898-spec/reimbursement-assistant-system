@@ -262,7 +262,7 @@
       一键体验（演示账号登录）
     </button>
     <div class="login-switch"><span id="switchTip">没有账号？</span> <a id="btnSwitch">立即注册</a></div>
-    <div class="login-hint" id="loginHint">点「一键体验」直接进入演示环境；或手动登录：zhangsan / abc123456（管理员）</div>
+    <div class="login-hint" id="loginHint">点「一键体验」直接进入演示环境；或手动登录：zhangsan / abc123456（管理员）· 页面版本 v2026.11.06</div>
   </div>
 </div>
 
@@ -370,10 +370,18 @@ async function api(path, opts = {}) {
   const headers = Object.assign({"Content-Type": "application/json"}, opts.headers || {});
   if (TOKEN) headers.Authorization = "Bearer " + TOKEN;
   const res = await fetch(withShare(path), Object.assign({}, opts, {headers}));
-  if (res.status === 401) { logout(); throw new Error("登录已失效，请重新登录"); }
   const text = await res.text();
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = {detail: text}; }
+  if (res.status === 401) {
+    // 登录/注册接口的 401 是「账号密码错误」，如实展示并保留表单；其余 401 才是会话过期
+    const detail = (data && (data.detail || data.message)) || "";
+    if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register")) {
+      throw new Error(detail || "用户名或密码错误");
+    }
+    logout();
+    throw new Error(detail || "登录已失效，请重新登录");
+  }
   if (!res.ok) throw new Error((data && (data.detail || data.message)) || ("请求失败 " + res.status));
   return data;
 }
@@ -400,7 +408,7 @@ function setMode(mode) {
   $("#btnSwitch").textContent = reg ? "去登录" : "立即注册";
   $("#loginHint").textContent = reg
     ? "提示：首个注册用户自动成为管理员；也可点「一键体验」直接用演示账号进入。"
-    : "演示账号：zhangsan / abc123456（管理员）";
+    : "演示账号：zhangsan / abc123456（管理员）· 页面版本 v2026.11.06";
 }
 $("#btnSwitch").onclick = () => setMode(AUTH_MODE === "login" ? "register" : "login");
 
