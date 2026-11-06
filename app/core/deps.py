@@ -2,7 +2,7 @@
 """FastAPI 依赖注入：数据库会话、当前用户、管理员鉴权。"""
 from typing import AsyncGenerator
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,13 +21,21 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def get_current_user(
+    request: Request,
     cred: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """解析 Bearer Token → 加载用户；未登录返回 401"""
-    if cred is None:
+    """解析 Token → 加载用户；未登录返回 401。
+
+    云端分享网关会改写标准 Authorization 头，因此前端改用自定义头
+    X-Auth-Token 传递 JWT；本头优先，Bearer 作为本地开发兼容回退。
+    """
+    token = request.headers.get("X-Auth-Token")
+    if not token and cred is not None:
+        token = cred.credentials
+    if not token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "未登录")
-    payload = decode_token(cred.credentials)
+    payload = decode_token(token)
     if payload is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "登录已过期，请重新登录")
     user = await db.get(User, int(payload["sub"]))
