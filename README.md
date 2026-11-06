@@ -152,10 +152,10 @@ app/
 └── static/index.html        全中文单页应用（7 个视图，SSE 打字机）
 src/
 ├── README.md                源码与资料归档导览（问答助手归档 / MVP 三大块地图）
-└── interviews/              六人访谈记录 md / json / csv（42 轮）
+└── interviews -> docs/construction-change/01-六人访谈记录/（六人访谈 42 轮 md/json/csv）
 tools/                       流程图与 docx 生成脚本
 docs/
-├── construction-change/     项目交付物 11 件（业务挖掘 / 行业分析 / 流程图×2 / 报价 / 设计方案 / 访谈 / 需求定义 / 详细设计 / 报价测算）
+├── construction-change/     交付物按任务1-9+Test顺序编排（访谈 / 简报 / 行业分析 / 流程图 / 需求定义 / 设计 / 报价 / 运行手册 / 测试）
 └── 01~08                    研发文档（需求评审 → 架构 → 原型 → Agent → 编排 → 上线检查）
 prototype/rag_prototype.py   阶段 1 单脚本 RAG 原型
 tests/                       冒烟测试 8 条 + 评测用例 30 条
@@ -163,37 +163,32 @@ tests/                       冒烟测试 8 条 + 评测用例 30 条
 
 ## 📚 文档导航
 
-**① 项目交付物**（[`docs/construction-change/`](docs/construction-change/)，共 11 件）
+**① 项目交付物**（按任务 1-9 顺序编排，索引：[`docs/construction-change/README.md`](docs/construction-change/README.md)）
 
-| # | 交付物 | 说明 |
+| 任务 | 交付物 | 文件 |
 | --- | --- | --- |
-| 1 | 📄 [业务挖掘报告](docs/construction-change/01-业务挖掘报告.md) | 触发事件 · 5 项业务机会 · 指标基线 · 六角色利益相关者地图 |
-| 2 | 📊 [行业分析](docs/construction-change/02-行业分析.docx) | 政策背景 · 四大共性痛点 · 技术成熟度 · 对项目的启示（Word） |
-| 3 | 📐 [改造前流程图](docs/construction-change/03-current-process-flow.png) | **改造前**现状：8 步人工流程 + 6 处痛点 + 典型事件还原 + 访谈量化基线 |
-| 4 | 📐 [改造后流程图](docs/construction-change/04-digitized-process-flow.png) | **改造后**数智化：8 步协同流程 + 6 项收益，目标与验收标准同口径 |
-| 5 | 💰 [报价单](docs/construction-change/05-报价单.xlsx) | 首期试点 3 个月打包价 ¥286,000，9 项明细，公式自动合计（Excel） |
-| 6 | 📋 [设计方案](docs/construction-change/06-设计方案.docx) | 四层架构 · 五大模块 · AI 红线 · 九阶段实施计划（Word） |
-| 7 | 🎙️ [典型事件访谈记录](docs/construction-change/07-典型事件访谈记录.txt) | 3 轮访谈：口头指令→补签被拒，具体化+量化（txt） |
-| 8 | 📝 [典型事件访谈整理](docs/construction-change/08-典型事件访谈整理.docx) | AI 整理版：事件还原 · 影响量化 · 改进边界（Word） |
-| 9 | 🎯 [需求定义文档](docs/construction-change/09-需求定义文档.docx) | 8 痛点 → 6 项 AI 改造优先级 → 需求边界 → 追溯矩阵 → 验收清单（Word） |
-| 10 | 🏗️ [详细项目设计方案](docs/construction-change/10-详细项目设计方案.docx) | 总体架构 · 功能/数据/AI 设计 · 实施里程碑（Word） |
-| 11 | 💵 [报价与投入产出测算](docs/construction-change/11-报价与投入产出测算.docx) | 低/中/高三档报价 + 年化收益测算 + 回收期与 ROI（Word） |
+| 1 | 六人访谈记录 md/json/csv | [`01-六人访谈记录/`](docs/construction-change/01-六人访谈记录/)（42 轮全量数据） |
+| 2 | 项目基本简报（4 文件） | [`02-项目简报资料/`](docs/construction-change/02-项目简报资料/)：案例背景 · 需求清单 · 方法框架 · 交付衔接 |
+| 3 | 典型事件访谈 txt + 整理 docx | [`03-典型事件访谈记录.txt`](docs/construction-change/03-典型事件访谈记录.txt) · [`04-典型事件访谈整理.docx`](docs/construction-change/04-典型事件访谈整理.docx) |
+| 4 | 行业分析 md + docx | [`05-行业分析.md`](docs/construction-change/05-行业分析.md) · [`06-行业分析.docx`](docs/construction-change/06-行业分析.docx) |
+| 5 | 两份流程图（改造前/后） | [`07-流程图-改造前.png`](docs/construction-change/07-流程图-改造前.png) · [`08-流程图-改造后.png`](docs/construction-change/08-流程图-改造后.png) |
+| 6 | 需求定义文档 docx | [`09-需求定义文档.docx`](docs/construction-change/09-需求定义文档.docx)：8 痛点 → 6 项 AI 改造优先级 → 边界规格 → 追溯矩阵 → 验收清单 |
+| 7 | 详细项目设计方案 docx | [`10-详细项目设计方案.docx`](docs/construction-change/10-详细项目设计方案.docx)：四层架构 · 功能/数据/AI 设计 · 四里程碑 |
+| 8 | 报价（低/中/高）与投入产出 docx | [`11-报价与投入产出测算.docx`](docs/construction-change/11-报价与投入产出测算.docx)（+ [`12-报价单.xlsx`](docs/construction-change/12-报价单.xlsx)） |
+| 9 | 上线交付运行手册 docx | [`13-上线交付运行手册.docx`](docs/construction-change/13-上线交付运行手册.docx)：部署地址 · 演示账号 · 4 处人工确认点 · 回滚 |
 
-> 案例四份可核对资料：[远筑工程-一张变更单的三个版本-四份可核对资料.html](docs/construction-change/远筑工程-一张变更单的三个版本-四份可核对资料.html)
-> 六人访谈原始记录（md/json/csv）：[`src/interviews/`](src/interviews/)
-
-**② 流程图对比**
+**② 流程图对比****② 流程图对比**
 
 <div align="center">
 
 | **改造前** · 8 步人工流程（6 处痛点 + 典型事件还原） | **改造后** · 8 步数智化流程（6 项收益 + 验收口径） |
 | :---: | :---: |
-| <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/03-current-process-flow.png" width="420" alt="改造前流程图"/> | <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/04-digitized-process-flow.png" width="420" alt="改造后流程图"/> |
+| <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/07-流程图-改造前.png" width="420" alt="改造前流程图"/> | <img src="https://cdn.jsdelivr.net/gh/wolf72898-spec/reimbursement-assistant-system@main/docs/construction-change/08-流程图-改造后.png" width="420" alt="改造后流程图"/> |
 | 人工驱动 · 版本失控 · 事后补救 | 数据驱动 + AI 辅助 + 人工把关 |
 
 </div>
 
-> 完整大图：[改造前流程图](docs/construction-change/03-current-process-flow.png) · [改造后流程图](docs/construction-change/04-digitized-process-flow.png)
+> 完整大图：[改造前流程图](docs/construction-change/07-流程图-改造前.png) · [改造后流程图](docs/construction-change/08-流程图-改造后.png)
 
 **③ 研发文档**
 
@@ -215,7 +210,7 @@ python tools/run_scenarios.py               # 五类场景端到端 32 步（需
 python -c "import json;print(len(json.load(open('tests/evaluation_cases.json',encoding='utf-8'))))"   # 30
 ```
 
-场景测试方案与可视化报告：[`docs/construction-change/12-测试方案.md`](docs/construction-change/12-测试方案.md)（md+docx）与 13~17 号场景 docx；过程图见 [`docs/construction-change/evidence/`](docs/construction-change/evidence/)。
+场景测试方案与可视化报告：[`docs/construction-change/20-测试方案.md`](docs/construction-change/20-测试方案.md)（md+docx）与 22~26 号场景 docx；过程图见 [`docs/construction-change/evidence/`](docs/construction-change/evidence/)。
 
 ## ⚙️ 环境变量
 

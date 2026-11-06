@@ -9,7 +9,7 @@
 
 | 归档内容 | 位置 |
 | --- | --- |
-| 六人访谈记录（md / json / csv，42 轮） | [`src/interviews/`](./interviews/) |
+| 六人访谈记录（md / json / csv，42 轮） | [`docs/construction-change/01-六人访谈记录/`](../docs/construction-change/01-六人访谈记录/) |
 | 研发过程文档 01~08（需求评审 → 架构 → 原型 → Agent → 编排 → 上线检查） | [`docs/`](../docs/) |
 | 裸问答 RAG 原型（阶段 1 单脚本） | [`prototype/rag_prototype.py`](../prototype/rag_prototype.py) |
 | 报销助手工具实现 | [`app/agent/registry.py`](../app/agent/registry.py)（7 个辅助工具） |
