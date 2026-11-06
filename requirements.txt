@@ -2,7 +2,7 @@
 fastapi>=0.110
 uvicorn[standard]>=0.29
 sqlalchemy[asyncio]>=2.0
-aiosqlite>=0.20          # 开发期 SQLite 异步驱动；生产换 asyncpg
+aiosqlite>=0.20          # 开发期 SQLite 异步驱动；生产换 PostgreSQL 驱动
 pydantic>=2.6
 PyJWT>=2.8
 openai>=1.30             # 所有供应商统一走 OpenAI 兼容协议

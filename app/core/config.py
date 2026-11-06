@@ -28,7 +28,7 @@ class Settings:
 
     # ---- 应用 ----
     APP_NAME: str = "报销助手智能体系统"
-    # 开发期默认 SQLite(异步)；生产用 postgresql+asyncpg://...
+    # 开发期默认 SQLite(异步)；生产用 PostgreSQL 连接串
     DATABASE_URL: str = os.getenv("APP_DATABASE_URL", "sqlite+aiosqlite:///./dev.db")
 
     # ---- 认证 ----
