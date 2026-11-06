@@ -27,8 +27,8 @@ ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
 fig.patch.set_facecolor("white")
 
 # ---------- 标题 ----------
-ax.text(50, 96.5, "远筑工程 · 工程变更与签证协同 —— 现状流程图",
-        ha="center", va="center", fontsize=21, fontweight="bold", color=DARK)
+ax.text(50, 96.5, "【改造前 · 现状人工流程】远筑工程 · 工程变更与签证协同 —— 现状流程图",
+        ha="center", va="center", fontsize=20, fontweight="bold", color="#B03A2E")
 ax.text(50, 93.2, "“一张变更单的三个版本”：人工驱动、版本失控、事后补救（融入典型事件 GC-2026-0117 与访谈量化数据）",
         ha="center", va="center", fontsize=10.5, color="#666666")
 
